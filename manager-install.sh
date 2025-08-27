@@ -128,19 +128,37 @@ manager_install_script() {
     manager_exec_privileged "$MANAGER_INSTALL_DIR" cp "$source_file" "$dest_file" || return 1
     manager_exec_privileged "$MANAGER_INSTALL_DIR" chmod +x "$dest_file" || return 1
     
-    # Install additional files if they exist
+    # Install additional files based on project configuration
     local clone_dir="$MANAGER_CLEAN_CLONE_DIR"
-    local additional_files="provider-agnostic.sh provider.sh"
-    local file dest
+    local config_file="$clone_dir/.manager-config"
     
-    for file in $additional_files; do
-        if [ -f "$clone_dir/$file" ]; then
-            dest="$MANAGER_INSTALL_DIR/$file"
-            manager_exec_privileged "$MANAGER_INSTALL_DIR" cp "$clone_dir/$file" "$dest"
-            manager_exec_privileged "$MANAGER_INSTALL_DIR" chmod +x "$dest"
-            manager_debug "Installed additional file: $file"
+    # Read project-specific configuration if it exists
+    if [ -f "$config_file" ]; then
+        # Source the config to get ADDITIONAL_FILES and LEGACY_FILES
+        . "$config_file"
+        
+        # Remove legacy files if specified
+        if [ -n "$LEGACY_FILES" ]; then
+            for legacy_file in $LEGACY_FILES; do
+                if [ -f "$MANAGER_INSTALL_DIR/$legacy_file" ]; then
+                    manager_exec_privileged "$MANAGER_INSTALL_DIR" rm -f "$MANAGER_INSTALL_DIR/$legacy_file"
+                    manager_debug "Removed legacy file: $legacy_file"
+                fi
+            done
         fi
-    done
+        
+        # Install additional files if specified
+        if [ -n "$ADDITIONAL_FILES" ]; then
+            for file in $ADDITIONAL_FILES; do
+                if [ -f "$clone_dir/$file" ]; then
+                    dest="$MANAGER_INSTALL_DIR/$file"
+                    manager_exec_privileged "$MANAGER_INSTALL_DIR" cp "$clone_dir/$file" "$dest"
+                    manager_exec_privileged "$MANAGER_INSTALL_DIR" chmod +x "$dest"
+                    manager_debug "Installed additional file: $file"
+                fi
+            done
+        fi
+    fi
     
     # Install providers directory if it exists
     if [ -d "$clone_dir/providers" ]; then
