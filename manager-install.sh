@@ -160,12 +160,16 @@ manager_install_script() {
         fi
     fi
     
-    # Install providers directory if it exists
-    if [ -d "$clone_dir/providers" ]; then
-        local providers_dest="$MANAGER_INSTALL_DIR/providers"
-        manager_exec_privileged "$MANAGER_INSTALL_DIR" cp -r "$clone_dir/providers" "$providers_dest"
-        manager_exec_privileged "$MANAGER_INSTALL_DIR" chmod -R +x "$providers_dest"/*.sh 2>/dev/null || true
-        manager_debug "Installed providers directory"
+    # Install directories if specified in configuration
+    if [ -n "$DIRECTORIES" ]; then
+        for dir in $DIRECTORIES; do
+            if [ -d "$clone_dir/$dir" ]; then
+                local dir_dest="$MANAGER_INSTALL_DIR/$dir"
+                manager_exec_privileged "$MANAGER_INSTALL_DIR" cp -r "$clone_dir/$dir" "$dir_dest"
+                manager_exec_privileged "$MANAGER_INSTALL_DIR" chmod -R +x "$dir_dest"/*.sh 2>/dev/null || true
+                manager_debug "Installed directory: $dir"
+            fi
+        done
     fi
     
     manager_log "Script installation completed"
@@ -199,6 +203,17 @@ manager_install_nodejs_app() {
         return 1
     }
     
+    # Determine Node.js entry point
+    local entry_point="main.js"
+    if [ -n "$NODE_ENTRY_POINT" ]; then
+        entry_point="$NODE_ENTRY_POINT"
+    elif [ -f "$clone_dir/package.json" ] && command -v node >/dev/null 2>&1; then
+        # Try to extract main from package.json
+        local pkg_main
+        pkg_main=$(node -p "try { require('./package.json').main } catch(e) { 'main.js' }" 2>/dev/null)
+        [ -n "$pkg_main" ] && [ "$pkg_main" != "undefined" ] && entry_point="$pkg_main"
+    fi
+
     # Create wrapper script
     wrapper_script=$(manager_create_temp_file "nodejs-wrapper") || return 1
     
@@ -222,7 +237,7 @@ fi
 
 # Run application from clean clone
 cd "\$CLEAN_CLONE_DIR" || exit 1
-exec node main.js "\$@"
+exec node $entry_point "\$@"
 EOF
     
     # Install wrapper script
