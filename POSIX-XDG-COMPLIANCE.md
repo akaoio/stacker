@@ -92,14 +92,11 @@ ${XDG_CACHE_HOME:-$HOME/.cache}/$TECH_NAME/
 ### Case Conversion (POSIX)
 ```bash
 # Instead of ${var^^} (bash-only)
-manager_to_upper() {
-    printf '%s\n' "$1" | tr '[:lower:]' '[:upper:]'
-}
+# Now using direct tr to avoid function dependencies
+tech_upper=$(printf '%s' "$MANAGER_TECH_NAME" | tr '[:lower:]' '[:upper:]')
 
 # Instead of ${var,,} (bash-only)  
-manager_to_lower() {
-    printf '%s\n' "$1" | tr '[:upper:]' '[:lower:]'
-}
+tech_lower=$(printf '%s' "$MANAGER_TECH_NAME" | tr '[:upper:]' '[:lower:]')
 ```
 
 ### Temporary Files (POSIX)
@@ -134,8 +131,17 @@ done < "$file"
 
 ### Output (POSIX)
 ```bash
-# Use printf instead of echo for portability
-printf "%s[Manager]%s %s\n" "$GREEN" "$NC" "$message"
+# Enhanced color-aware output (v1.1.0)
+if [ "${NO_COLOR:-0}" = "1" ] || [ "${FORCE_COLOR:-0}" = "0" ]; then
+    MANAGER_GREEN=''
+    MANAGER_NC=''
+elif [ "${FORCE_COLOR:-0}" = "1" ] || { [ -t 1 ] && [ "${TERM:-dumb}" != "dumb" ]; }; then
+    MANAGER_GREEN='\033[0;32m'
+    MANAGER_NC='\033[0m'
+fi
+
+# Use printf for consistent output
+printf "%s[Manager]%s %s\n" "$MANAGER_GREEN" "$MANAGER_NC" "$message"
 
 # Avoid echo -e (not POSIX)
 # Avoid echo -n (not portable)
