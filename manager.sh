@@ -23,7 +23,25 @@ MANAGER_TECH_NAME=""
 MANAGER_REPO_URL=""
 MANAGER_MAIN_SCRIPT=""
 MANAGER_SERVICE_DESCRIPTION=""
-MANAGER_INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin}"
+# Auto-detect best installation directory
+if [ -n "$INSTALL_DIR" ]; then
+    # User specified directory
+    MANAGER_INSTALL_DIR="$INSTALL_DIR"
+elif [ -n "$FORCE_USER_INSTALL" ] || [ "$FORCE_USER_INSTALL" = "1" ]; then
+    # Force user installation
+    MANAGER_INSTALL_DIR="$HOME/.local/bin"
+    # Ensure directory exists
+    mkdir -p "$MANAGER_INSTALL_DIR"
+elif [ -w "/usr/local/bin" ] && [ -z "$NO_SUDO" ] && sudo -n true 2>/dev/null; then
+    # System installation (sudo available and not disabled)
+    MANAGER_INSTALL_DIR="/usr/local/bin"
+else
+    # User installation (no sudo or disabled)
+    MANAGER_INSTALL_DIR="$HOME/.local/bin"
+    # Ensure directory exists
+    mkdir -p "$MANAGER_INSTALL_DIR"
+fi
+
 MANAGER_HOME_DIR="$HOME"
 
 # Initialize manager framework for a technology
@@ -50,7 +68,20 @@ manager_init() {
     MANAGER_DATA_DIR="$MANAGER_HOME_DIR/.local/share/$tech_name"
     MANAGER_STATE_DIR="$MANAGER_HOME_DIR/.local/state/$tech_name"
     
-    manager_log "Initialized manager framework for $tech_name"
+    # Log installation mode
+    if [ "$MANAGER_INSTALL_DIR" = "/usr/local/bin" ]; then
+        manager_log "Initialized for $tech_name (system installation)"
+    else
+        manager_log "Initialized for $tech_name (user installation: $MANAGER_INSTALL_DIR)"
+        # Check PATH
+        case ":$PATH:" in
+            *":$MANAGER_INSTALL_DIR:"*)
+                ;;
+            *)
+                manager_warn "Add to PATH: export PATH=\"$MANAGER_INSTALL_DIR:\$PATH\""
+                ;;
+        esac
+    fi
     return 0
 }
 

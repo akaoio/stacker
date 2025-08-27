@@ -71,7 +71,10 @@ update_clean_clone() {
         REMOTE=\$(git rev-parse origin/main 2>/dev/null || git rev-parse origin/master 2>/dev/null)
         
         if [ "\$LOCAL" != "\$REMOTE" ]; then
-            log_update "Updates available (\${LOCAL:0:8} -> \${REMOTE:0:8})"
+            # POSIX-compliant hash display
+            LOCAL_SHORT=\$(echo "\$LOCAL" | cut -c1-8)
+            REMOTE_SHORT=\$(echo "\$REMOTE" | cut -c1-8)
+            log_update "Updates available (\$LOCAL_SHORT -> \$REMOTE_SHORT)"
             
             # Create backup of current version
             BACKUP_DIR="\$CONFIG_DIR/backups/\$(date +%Y%m%d-%H%M%S)"
@@ -87,7 +90,9 @@ update_clean_clone() {
             log_update "Clean clone updated successfully"
             return 0
         else
-            log_update "No updates needed (\${LOCAL:0:8})"
+            # POSIX-compliant hash display
+            LOCAL_SHORT=\$(echo "\$LOCAL" | cut -c1-8)
+            log_update "No updates needed (\$LOCAL_SHORT)"
             return 1
         fi
     else

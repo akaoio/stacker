@@ -411,12 +411,24 @@ manager_create_temp_file() {
 manager_check_privileges() {
     local dir="${1:-$MANAGER_INSTALL_DIR}"
     
+    # If directory doesn't exist, check parent directory
+    if [ ! -d "$dir" ]; then
+        # Create directory if in user space
+        case "$dir" in
+            "$HOME"/*|"$HOME")
+                mkdir -p "$dir" 2>/dev/null && echo "0" && return
+                ;;
+        esac
+        # Check parent directory for system paths
+        dir="$(dirname "$dir")"
+    fi
+    
     if [ -w "$dir" ] 2>/dev/null; then
-        return 0  # Have write access
+        echo "0"  # Have write access
     elif sudo -n true 2>/dev/null; then
-        return 1  # Need sudo but have it
+        echo "1"  # Need sudo but have it
     else
-        return 2  # Need sudo but don't have it
+        echo "2"  # Need sudo but don't have it
     fi
 }
 
@@ -425,13 +437,19 @@ manager_exec_privileged() {
     local dir="$1"
     shift
     
-    case "$(manager_check_privileges "$dir")" in
+    local priv_level
+    priv_level=$(manager_check_privileges "$dir")
+    manager_debug "Checking privileges for $dir: level=$priv_level"
+    
+    case "$priv_level" in
         0)
             # Direct execution
+            manager_debug "Direct execution: $*"
             "$@"
             ;;
         1)
             # Use sudo
+            manager_debug "Sudo execution: $*"
             sudo "$@"
             ;;
         *)
