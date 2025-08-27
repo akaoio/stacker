@@ -4,6 +4,12 @@
 
 The @akaoio/manager framework has been designed from the ground up to be **fully POSIX compliant** and **XDG Base Directory Specification compliant**. This ensures universal compatibility and follows modern Unix standards.
 
+**Recent Enhancements (v1.1.0):**
+- Enhanced color handling with NO_COLOR and FORCE_COLOR support
+- Universal project configuration via `.manager-config`
+- Improved POSIX compliance with better function detection
+- Fixed case conversion functions to avoid circular dependencies
+
 ## POSIX Compliance ✅
 
 ### Shell Compatibility
@@ -30,6 +36,13 @@ The framework has been tested and works correctly on:
 - ❌ **GNU-specific options**: No GNU find/grep/sed extensions
 - ❌ **Bash-specific builtins**: No `read -p`, `echo -e` dependency
 - ❌ **Process substitution**: No `<(command)` or `>(command)`
+
+### Color Output Compliance
+The framework now properly handles terminal colors in a POSIX-compliant way:
+- ✅ **NO_COLOR support**: Respects https://no-color.org/ standard
+- ✅ **FORCE_COLOR support**: Allows forcing colors when needed
+- ✅ **Terminal detection**: Uses POSIX-compliant terminal detection
+- ✅ **Fallback handling**: Gracefully degrades when colors unavailable
 
 ## XDG Base Directory Compliance ✅
 

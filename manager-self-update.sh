@@ -3,7 +3,7 @@
 # POSIX compliant and XDG Base Directory compliant
 
 # Manager self-update configuration - XDG compliant
-MANAGER_REPO_URL="https://github.com/akaoio/manager.git"
+MANAGER_REPO_URL="${MANAGER_REPO_URL:-https://github.com/akaoio/manager.git}"
 MANAGER_XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 MANAGER_XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 MANAGER_VERSION_FILE="$MANAGER_XDG_CONFIG_HOME/manager/version"

@@ -38,7 +38,9 @@ manager_load_config_with_jq() {
     # Export all configuration variables
     jq -r 'to_entries[] | "\(.key)=\(.value)"' "$config_file" 2>/dev/null | while IFS='=' read -r key value; do
         if [ -n "$key" ]; then
-            export "${MANAGER_TECH_NAME^^}_${key^^}=$value"
+            tech_upper=$(manager_to_upper "$MANAGER_TECH_NAME")
+            key_upper=$(manager_to_upper "$key")
+            export "${tech_upper}_${key_upper}=$value"
         fi
     done
 }
@@ -58,7 +60,9 @@ manager_load_config_simple() {
         # Extract key-value pairs (basic JSON parsing)
         echo "$line" | sed -n 's/.*"\([^"]*\)"\s*:\s*"\([^"]*\)".*/\1=\2/p' | while IFS='=' read -r key value; do
             if [ -n "$key" ]; then
-                export "${MANAGER_TECH_NAME^^}_${key^^}=$value"
+                tech_upper=$(manager_to_upper "$MANAGER_TECH_NAME")
+            key_upper=$(manager_to_upper "$key")
+            export "${tech_upper}_${key_upper}=$value"
             fi
         done
     done < "$config_file"
@@ -66,7 +70,7 @@ manager_load_config_simple() {
 
 # Load environment variable overrides
 manager_load_env_overrides() {
-    local prefix="${MANAGER_TECH_NAME^^}_"
+    local prefix="$(manager_to_upper "$MANAGER_TECH_NAME")_"
     
     # Look for environment variables with the technology prefix
     env | grep "^$prefix" | while IFS='=' read -r var_name value; do
@@ -162,7 +166,9 @@ manager_save_config() {
 manager_get_config() {
     local key="$1"
     local config_file="$MANAGER_CONFIG_DIR/config.json"
-    local env_var="${MANAGER_TECH_NAME^^}_${key^^}"
+    local tech_upper=$(manager_to_upper "$MANAGER_TECH_NAME")
+    local key_upper=$(manager_to_upper "$key")
+    local env_var="${tech_upper}_${key_upper}"
     
     if [ -z "$key" ]; then
         manager_error "Configuration key is required"
@@ -365,7 +371,8 @@ manager_show_config() {
     
     echo ""
     echo "Environment overrides:"
-    env | grep "^${MANAGER_TECH_NAME^^}_" || echo "  None"
+    local prefix=$(manager_to_upper "$MANAGER_TECH_NAME")
+    env | grep "^${prefix}_" || echo "  None"
     echo ""
     
     return 0
