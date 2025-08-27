@@ -15,24 +15,20 @@ MANAGER_STATE_DIR="$MANAGER_XDG_STATE_HOME/manager"
 MANAGER_CACHE_DIR="$MANAGER_XDG_CACHE_HOME/manager"
 
 # Colors for output (POSIX compliant terminal detection)
-if [ -t 1 ] && [ -t 2 ]; then
-    # Only use colors if both stdout and stderr are terminals
-    case "$TERM" in
-        *color*|xterm*|screen*|tmux*)
-            MANAGER_RED='\033[0;31m'
-            MANAGER_GREEN='\033[0;32m' 
-            MANAGER_YELLOW='\033[1;33m'
-            MANAGER_BLUE='\033[0;34m'
-            MANAGER_NC='\033[0m'
-            ;;
-        *)
-            MANAGER_RED=''
-            MANAGER_GREEN=''
-            MANAGER_YELLOW=''
-            MANAGER_BLUE=''
-            MANAGER_NC=''
-            ;;
-    esac
+# Check for NO_COLOR environment variable first (https://no-color.org/)
+if [ "${NO_COLOR:-0}" = "1" ] || [ "${FORCE_COLOR:-0}" = "0" ]; then
+    MANAGER_RED=''
+    MANAGER_GREEN=''
+    MANAGER_YELLOW=''
+    MANAGER_BLUE=''
+    MANAGER_NC=''
+elif [ "${FORCE_COLOR:-0}" = "1" ] || { [ -t 1 ] && [ "${TERM:-dumb}" != "dumb" ]; }; then
+    # Use colors if forced or if stdout is a terminal and TERM is not dumb
+    MANAGER_RED='\033[0;31m'
+    MANAGER_GREEN='\033[0;32m' 
+    MANAGER_YELLOW='\033[1;33m'
+    MANAGER_BLUE='\033[0;34m'
+    MANAGER_NC='\033[0m'
 else
     MANAGER_RED=''
     MANAGER_GREEN=''
@@ -62,22 +58,39 @@ manager_log_to_file() {
 }
 
 manager_log() {
-    printf "%s[Manager]%s %s\n" "$MANAGER_GREEN" "$MANAGER_NC" "$*"
+    # Use echo -e if available and colors are set, otherwise printf
+    if [ -n "$MANAGER_GREEN" ] && echo -e test >/dev/null 2>&1; then
+        echo -e "${MANAGER_GREEN}[Manager]${MANAGER_NC} $*"
+    else
+        printf "%s[Manager]%s %s\n" "$MANAGER_GREEN" "$MANAGER_NC" "$*"
+    fi
     manager_log_to_file "LOG: $*"
 }
 
 manager_info() {
-    printf "%s[Info]%s %s\n" "$MANAGER_BLUE" "$MANAGER_NC" "$*"
+    if [ -n "$MANAGER_BLUE" ] && echo -e test >/dev/null 2>&1; then
+        echo -e "${MANAGER_BLUE}[Info]${MANAGER_NC} $*"
+    else
+        printf "%s[Info]%s %s\n" "$MANAGER_BLUE" "$MANAGER_NC" "$*"
+    fi
     manager_log_to_file "INFO: $*"
 }
 
 manager_warn() {
-    printf "%s[Warning]%s %s\n" "$MANAGER_YELLOW" "$MANAGER_NC" "$*" >&2
+    if [ -n "$MANAGER_YELLOW" ] && echo -e test >/dev/null 2>&1; then
+        echo -e "${MANAGER_YELLOW}[Warning]${MANAGER_NC} $*" >&2
+    else
+        printf "%s[Warning]%s %s\n" "$MANAGER_YELLOW" "$MANAGER_NC" "$*" >&2
+    fi
     manager_log_to_file "WARN: $*"
 }
 
 manager_error() {
-    printf "%s[Error]%s %s\n" "$MANAGER_RED" "$MANAGER_NC" "$*" >&2
+    if [ -n "$MANAGER_RED" ] && echo -e test >/dev/null 2>&1; then
+        echo -e "${MANAGER_RED}[Error]${MANAGER_NC} $*" >&2
+    else
+        printf "%s[Error]%s %s\n" "$MANAGER_RED" "$MANAGER_NC" "$*" >&2
+    fi
     manager_log_to_file "ERROR: $*"
 }
 
