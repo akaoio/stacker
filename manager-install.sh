@@ -130,8 +130,17 @@ manager_install_script() {
     
     # Install additional files if they exist
     local clone_dir="$MANAGER_CLEAN_CLONE_DIR"
-    local additional_files="provider-agnostic.sh provider.sh"
+    local additional_files="providers.sh"
     local file dest
+    
+    # Remove legacy files that might conflict
+    local legacy_files="provider-agnostic.sh provider.sh"
+    for legacy_file in $legacy_files; do
+        if [ -f "$MANAGER_INSTALL_DIR/$legacy_file" ]; then
+            manager_exec_privileged "$MANAGER_INSTALL_DIR" rm -f "$MANAGER_INSTALL_DIR/$legacy_file"
+            manager_debug "Removed legacy file: $legacy_file"
+        fi
+    done
     
     for file in $additional_files; do
         if [ -f "$clone_dir/$file" ]; then
