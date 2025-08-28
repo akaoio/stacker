@@ -1,11 +1,11 @@
 project:
   name: "@akaoio/manager"
-  version: "1.0.0"
+  version: "2.0.0"
   license: "MIT"
   author: "AKAO.IO"
   repository: "https://github.com/akaoio/manager"
-  description: "Universal POSIX shell framework for system management - The foundational framework that standardizes patterns across all technologies"
-  philosophy: "Manager brings order to chaos - a universal shell framework that works everywhere, forever."
+  description: "Universal POSIX shell framework for system management - The foundational framework that standardizes patterns across all technologies with modular architecture"
+  philosophy: "Manager brings order to chaos - a universal shell framework with modular loading that works everywhere, forever."
 
 core_principles:
   - title: "Universal POSIX Compliance"
@@ -60,6 +60,18 @@ features:
   - name: "Universal Shell Patterns"
     description: "Standardized patterns for error handling, logging, configuration, and state management"
   
+  - name: "Dynamic Module Loading"
+    description: "On-demand module loading with automatic dependency resolution and smart caching"
+  
+  - name: "Modular Architecture"
+    description: "Clean separation of concerns with independent, reusable modules that load only when needed"
+  
+  - name: "Module Registry System"
+    description: "Comprehensive module tracking, dependency management, and initialization lifecycle"
+  
+  - name: "Auto-Loading Intelligence"
+    description: "Smart function detection that automatically loads required modules based on function calls"
+  
   - name: "XDG Compliance"
     description: "Full XDG Base Directory specification compliance for configuration and data storage"
   
@@ -71,9 +83,6 @@ features:
   
   - name: "Atomic Operations"
     description: "Safe atomic updates and rollback capabilities for critical operations"
-  
-  - name: "Modular Architecture"
-    description: "Clean separation of concerns with independent, reusable modules"
   
   - name: "Version Management"
     description: "Semantic versioning with compatibility checking and migration support"

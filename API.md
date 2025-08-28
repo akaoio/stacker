@@ -1,6 +1,6 @@
 # @akaoio/manager API Reference
 
-Universal POSIX shell framework for system management - The foundational framework that standardizes patterns across all technologies
+Universal POSIX shell framework for system management - The foundational framework that standardizes patterns across all technologies with modular architecture
 
 ## Core API
 
@@ -406,4 +406,4 @@ module_cleanup() {
 
 *@akaoio/manager API Reference*
 
-*Version 1.0.0 | License: MIT*
+*Version 2.0.0 | License: MIT*

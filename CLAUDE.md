@@ -4,13 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with th
 
 ## Project Overview
 
-**@akaoio/manager** - Universal POSIX shell framework for system management - The foundational framework that standardizes patterns across all technologies
+**@akaoio/manager** - Universal POSIX shell framework for system management - The foundational framework that standardizes patterns across all technologies with modular architecture
 
-**Version**: 1.0.0  
+**Version**: 2.0.0  
 **License**: MIT  
 **Author**: AKAO.IO  
 **Repository**: https://github.com/akaoio/manager  
-**Philosophy**: "Manager brings order to chaos - a universal shell framework that works everywhere, forever."
+**Philosophy**: "Manager brings order to chaos - a universal shell framework with modular loading that works everywhere, forever."
 
 ## Core Development Principles
 
@@ -88,6 +88,22 @@ Manager is a comprehensive shell framework that provides standardized patterns f
 Standardized patterns for error handling, logging, configuration, and state management
 
 
+### Dynamic Module Loading
+On-demand module loading with automatic dependency resolution and smart caching
+
+
+### Modular Architecture
+Clean separation of concerns with independent, reusable modules that load only when needed
+
+
+### Module Registry System
+Comprehensive module tracking, dependency management, and initialization lifecycle
+
+
+### Auto-Loading Intelligence
+Smart function detection that automatically loads required modules based on function calls
+
+
 ### XDG Compliance
 Full XDG Base Directory specification compliance for configuration and data storage
 
@@ -102,10 +118,6 @@ Native integration with systemd, init.d, launchd, and cron
 
 ### Atomic Operations
 Safe atomic updates and rollback capabilities for critical operations
-
-
-### Modular Architecture
-Clean separation of concerns with independent, reusable modules
 
 
 ### Version Management
@@ -508,4 +520,4 @@ Manager is the foundational framework that brings consistency and reliability to
 
 *Manager is the foundation - bringing order to chaos through universal shell patterns.*
 
-*Version: 1.0.0 | License: MIT | Author: AKAO.IO*
+*Version: 2.0.0 | License: MIT | Author: AKAO.IO*

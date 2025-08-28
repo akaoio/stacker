@@ -1,10 +1,10 @@
 # @akaoio/manager
 
-Universal POSIX shell framework for system management - The foundational framework that standardizes patterns across all technologies
+Universal POSIX shell framework for system management - The foundational framework that standardizes patterns across all technologies with modular architecture
 
-> Manager brings order to chaos - a universal shell framework that works everywhere, forever.
+> Manager brings order to chaos - a universal shell framework with modular loading that works everywhere, forever.
 
-**Version**: 1.0.0  
+**Version**: 2.0.0  
 **License**: MIT  
 **Repository**: https://github.com/akaoio/manager
 
@@ -41,6 +41,14 @@ Built to last forever - when languages come and go, Manager remains
 
 - **Universal Shell Patterns**: Standardized patterns for error handling, logging, configuration, and state management
 
+- **Dynamic Module Loading**: On-demand module loading with automatic dependency resolution and smart caching
+
+- **Modular Architecture**: Clean separation of concerns with independent, reusable modules that load only when needed
+
+- **Module Registry System**: Comprehensive module tracking, dependency management, and initialization lifecycle
+
+- **Auto-Loading Intelligence**: Smart function detection that automatically loads required modules based on function calls
+
 - **XDG Compliance**: Full XDG Base Directory specification compliance for configuration and data storage
 
 - **Multi-Platform Support**: Works on Linux, BSD, macOS, and any POSIX-compliant system
@@ -48,8 +56,6 @@ Built to last forever - when languages come and go, Manager remains
 - **Service Integration**: Native integration with systemd, init.d, launchd, and cron
 
 - **Atomic Operations**: Safe atomic updates and rollback capabilities for critical operations
-
-- **Modular Architecture**: Clean separation of concerns with independent, reusable modules
 
 - **Version Management**: Semantic versioning with compatibility checking and migration support
 
