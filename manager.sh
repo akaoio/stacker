@@ -343,34 +343,41 @@ manager_help() {
 Manager Framework v2.0 - Universal Shell Framework (Modular)
 
 Usage:
-  Direct execution:
-    ./manager.sh [options]
+  ./manager.sh [COMMAND] [OPTIONS]
 
-  Source and use functions:
-    . ./manager.sh
-    manager_init "name" "repo_url" "main_script" ["description"]
-    manager_install [--service] [--cron] [--auto-update] [--interval=N]
+Commands:
+  init, -i              Initialize Manager framework in current directory
+  config, -c            Manage configuration settings
+  install               Install Manager-based application
+  update, -u            Update Manager-based application
+  service, -s           Control Manager service
+  health                Check system health and diagnostics
+  status                Show current status
+  rollback, -r          Rollback to previous version
+  version, -v           Show version information
+  help, -h              Show help information
 
-Options:
+Options (for direct execution):
   --help, -h           Show this help
   --version, -v        Show version information
   --list-modules, -l   List all modules (loaded and available)
   --module-info, -m    Show module information
 
-Module Management:
+Command Examples:
+  manager init --template=cli --name=mytool
+  manager config set update.interval 3600
+  manager install --systemd --auto-update
+  manager service status
+  manager health --verbose
+
+For detailed help on any command:
+  manager [COMMAND] --help
+
+Module Management (when sourced):
   manager_require "module1 module2"  # Load specific modules
   manager_list_loaded_modules        # Show loaded modules
   manager_list_available_modules     # Show available modules
   manager_module_info "module_name"  # Show module information
-
-Example:
-  #!/bin/sh
-  . ./manager.sh
-  manager_init "mytool" "https://github.com/user/mytool.git" "mytool.sh"
-  manager_install --redundant --auto-update
-
-Backwards Compatibility:
-  Set MANAGER_LEGACY_MODE=1 to load all modules at startup (like v1.0)
 
 EOF
 }
