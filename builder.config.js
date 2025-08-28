@@ -13,16 +13,16 @@ export default {
   
   // Output configuration - multiple formats for maximum compatibility
   outDir: "dist",
-  formats: ["esm", "cjs", "iife"],
+  formats: ["esm", "cjs"],
   
   // Platform targets
   platform: "node",
-  target: "node16",
+  target: "node",
   
   // TypeScript configuration
   typescript: {
-    declaration: true,
-    declarationMap: true,
+    declaration: false, // Temporarily disabled due to type resolution issues
+    declarationMap: false,
     skipLibCheck: true
   },
   

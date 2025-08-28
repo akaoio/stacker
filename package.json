@@ -5,12 +5,10 @@
   "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
-  "types": "dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs",
-      "types": "./dist/index.d.ts"
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     },
     "./shell": "./stacker.sh"
   },
@@ -18,8 +16,8 @@
     "stacker": "./stacker.sh"
   },
   "scripts": {
-    "build": "builder build",
-    "dev": "builder dev",
+    "build": "akao-build",
+    "dev": "akao-build --watch",
     "test": "battle test",
     "docs": "composer generate",
     "clean": "rm -rf dist/",
@@ -41,9 +39,11 @@
     "url": "https://github.com/akaoio/stacker.git"
   },
   "devDependencies": {
-    "@akaoio/builder": "latest",
-    "@akaoio/composer": "latest",
-    "@akaoio/battle": "latest"
+    "@akaoio/builder": "*",
+    "@akaoio/composer": "*",
+    "@akaoio/battle": "*",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
   },
   "files": [
     "dist/",
