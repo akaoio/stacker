@@ -2,15 +2,8 @@
 # @akaoio/stacker - Dynamic Module Loading System
 # PURE POSIX shell implementation for selective module loading
 
-# Module registry - tracks loaded modules and dependencies
+# Module registry - tracks loaded modules
 STACKER_LOADED_MODULES=""
-STACKER_MODULE_DEPENDENCIES_core=""
-STACKER_MODULE_DEPENDENCIES_config="core"
-STACKER_MODULE_DEPENDENCIES_install="core config"
-STACKER_MODULE_DEPENDENCIES_service="core config"
-STACKER_MODULE_DEPENDENCIES_update="core config"
-STACKER_MODULE_DEPENDENCIES_self_update="core config update"
-STACKER_MODULE_DEPENDENCIES_cli="core config"
 
 # Check if module is already loaded
 stacker_is_module_loaded() {
@@ -36,10 +29,19 @@ stacker_mark_module_loaded() {
 # Get module dependencies
 stacker_get_module_dependencies() {
     local module_name="$1"
-    local var_name="STACKER_MODULE_DEPENDENCIES_${module_name}"
     
-    # Use eval to get the value of the dynamically named variable
-    eval "echo \${${var_name}:-}"
+    # Direct case mapping for dependencies (POSIX compliant)
+    case "$module_name" in
+        core) echo "" ;;
+        config) echo "core" ;;
+        install) echo "core config" ;;
+        service) echo "core config" ;;
+        update) echo "core config" ;;
+        self) echo "core" ;;
+        cli) echo "core config" ;;
+        package) echo "core" ;;
+        *) echo "" ;;
+    esac
 }
 
 # Load a single module with dependency resolution
@@ -183,11 +185,17 @@ stacker_autoload_for_function() {
         stacker_service*|stacker_systemd_*|stacker_cron_*)
             stacker_require "service"
             ;;
-        stacker_update*|stacker_check_updates)
+        stacker_update*|stacker_check_updates|stacker_rollback*|stacker_cli_update|stacker_cli_rollback|stacker_cli_self_update)
             stacker_require "update"
             ;;
-        stacker_self_update*|stacker_handle_self_update)
-            stacker_require "self_update"
+        stacker_cli_self_install|stacker_cli_self_uninstall)
+            stacker_require "self"
+            ;;
+        stacker_cli_*|stacker_parse_cli)
+            stacker_require "cli"
+            ;;
+        stacker_*_package*|stacker_cli_add|stacker_cli_remove|stacker_cli_list|stacker_cli_enable|stacker_cli_disable|stacker_cli_search|stacker_cli_info)
+            stacker_require "package"
             ;;
         *)
             # Default to core for unknown functions

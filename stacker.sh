@@ -346,6 +346,16 @@ Usage:
   ./stacker.sh [COMMAND] [OPTIONS]
 
 Commands:
+  # Package Management (Universal POSIX Package Manager)
+  add                   Add package from GitHub/GitLab/URL
+  remove, rm            Remove package
+  list, ls              List installed packages
+  enable                Enable package in scope (local/user/system)
+  disable               Disable package in scope
+  search                Search for packages
+  info                  Show package information
+  
+  # Framework Management
   init, -i              Initialize Stacker framework in current directory
   config, -c            Manage configuration settings
   install               Install Stacker-based application
@@ -354,6 +364,8 @@ Commands:
   health                Check system health and diagnostics
   status                Show current status
   rollback, -r          Rollback to previous version
+  
+  # Global Installation
   self-install          Install Stacker globally as command-line tool
   self-uninstall        Remove global Stacker installation
   version, -v           Show version information
@@ -366,6 +378,16 @@ Options (for direct execution):
   --module-info, -m    Show module information
 
 Command Examples:
+  # Package Management - Like npm/yarn/bun but for POSIX systems
+  stacker add gh:akaoio/air              # Add package from GitHub
+  stacker add gh:akaoio/air --user       # Install for user only
+  stacker add gh:akaoio/air --system     # Install system-wide
+  stacker remove air                     # Remove package
+  stacker list --user                    # List user packages
+  stacker enable air --local             # Enable package locally
+  stacker disable air --system           # Disable system package
+  
+  # Framework Management
   stacker init --template=cli --name=mytool
   stacker config set update.interval 3600
   stacker install --systemd --auto-update
@@ -384,11 +406,7 @@ Module Management (when sourced):
 EOF
 }
 
-# Backwards compatibility mode
-if [ "${STACKER_LEGACY_MODE:-0}" = "1" ]; then
-    stacker_debug "Legacy mode enabled - loading all modules"
-    stacker_require "config install service update self_update" >/dev/null 2>&1 || true
-fi
+# All modules are loaded on-demand
 
 # Parse CLI arguments and execute commands
 stacker_parse_cli() {
@@ -454,6 +472,41 @@ stacker_parse_cli() {
         self-uninstall)
             shift
             stacker_cli_self_uninstall "$@"
+            exit $?
+            ;;
+        add)
+            shift
+            stacker_cli_add "$@"
+            exit $?
+            ;;
+        remove|rm)
+            shift
+            stacker_cli_remove "$@"
+            exit $?
+            ;;
+        list|ls)
+            shift
+            stacker_cli_list "$@"
+            exit $?
+            ;;
+        enable)
+            shift
+            stacker_cli_enable "$@"
+            exit $?
+            ;;
+        disable)
+            shift
+            stacker_cli_disable "$@"
+            exit $?
+            ;;
+        search)
+            shift
+            stacker_cli_search "$@"
+            exit $?
+            ;;
+        info)
+            shift
+            stacker_cli_info "$@"
             exit $?
             ;;
         --self-update|--discover|--setup-auto-update|--remove-auto-update|--self-status|--register)
@@ -1390,6 +1443,411 @@ EOF
     echo ""
     
     return 0
+}
+
+# Package management CLI commands
+stacker_cli_add() {
+    local url="$1"
+    local scope="user"
+    
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --local)
+                scope="local"
+                ;;
+            --user)
+                scope="user"
+                ;;
+            --system)
+                scope="system"
+                ;;
+            --help|-h)
+                cat << 'EOF'
+Usage: stacker add <package-url> [OPTIONS]
+
+Add package from GitHub/GitLab/URL
+
+Package URL formats:
+  gh:user/repo[@ref]        GitHub repository
+  gl:user/repo[@ref]        GitLab repository  
+  https://example.git       Direct Git URL
+  file:///local/path        Local directory
+
+Options:
+  --local                   Install in project (.stacker/)
+  --user                    Install for user (~/.local/share/stacker) [default]
+  --system                  Install system-wide (/usr/local/share/stacker)
+  --help, -h                Show this help
+
+Examples:
+  stacker add gh:akaoio/air              # Add from GitHub (user scope)
+  stacker add gh:akaoio/air --system     # Add system-wide
+  stacker add gl:myorg/tool --local      # Add locally to project
+  stacker add https://example.com/pkg.git
+EOF
+                return 0
+                ;;
+            -*)
+                # Skip if it looks like an option but we already processed URL
+                if [ -n "$url" ]; then
+                    shift
+                    continue
+                fi
+                # Otherwise treat as URL
+                url="$1"
+                ;;
+            *)
+                # First non-option argument is the URL
+                if [ -z "$url" ]; then
+                    url="$1"
+                fi
+                ;;
+        esac
+        shift
+    done
+    
+    if [ -z "$url" ]; then
+        stacker_error "Package URL required"
+        stacker_log "Usage: stacker add <package-url> [--local|--user|--system]"
+        stacker_log "Use 'stacker add --help' for more information"
+        return 1
+    fi
+    
+    # Load package management module
+    stacker_require "package" || return 1
+    
+    stacker_install_package "$url" "$scope"
+}
+
+stacker_cli_remove() {
+    local name="$1"
+    local scope="user"
+    
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --local)
+                scope="local"
+                ;;
+            --user)
+                scope="user"
+                ;;
+            --system)
+                scope="system"
+                ;;
+            --help|-h)
+                cat << 'EOF'
+Usage: stacker remove <package-name> [OPTIONS]
+
+Remove installed package
+
+Options:
+  --local                   Remove from project (.stacker/)
+  --user                    Remove from user (~/.local/share/stacker) [default]
+  --system                  Remove from system (/usr/local/share/stacker)
+  --help, -h                Show this help
+
+Examples:
+  stacker remove air                     # Remove from user scope
+  stacker remove air --system            # Remove from system
+  stacker rm air --local                 # Remove from project (rm alias)
+EOF
+                return 0
+                ;;
+            -*)
+                # Skip if it looks like an option but we already processed name
+                if [ -n "$name" ]; then
+                    shift
+                    continue
+                fi
+                # Otherwise treat as name
+                name="$1"
+                ;;
+            *)
+                # First non-option argument is the name
+                if [ -z "$name" ]; then
+                    name="$1"
+                fi
+                ;;
+        esac
+        shift
+    done
+    
+    if [ -z "$name" ]; then
+        stacker_error "Package name required"
+        stacker_log "Usage: stacker remove <package-name> [--local|--user|--system]"
+        return 1
+    fi
+    
+    # Load package management module
+    stacker_require "package" || return 1
+    
+    stacker_remove_package "$name" "$scope"
+}
+
+stacker_cli_list() {
+    local scope="user"
+    local all_scopes=false
+    
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --local)
+                scope="local"
+                ;;
+            --user)
+                scope="user"
+                ;;
+            --system)
+                scope="system"
+                ;;
+            --all|-a)
+                all_scopes=true
+                ;;
+            --help|-h)
+                cat << 'EOF'
+Usage: stacker list [OPTIONS]
+
+List installed packages
+
+Options:
+  --local                   List project packages (.stacker/)
+  --user                    List user packages (~/.local/share/stacker) [default]
+  --system                  List system packages (/usr/local/share/stacker)
+  --all, -a                 List packages from all scopes
+  --help, -h                Show this help
+
+Examples:
+  stacker list                           # List user packages
+  stacker list --system                  # List system packages
+  stacker ls --all                       # List all packages (ls alias)
+EOF
+                return 0
+                ;;
+        esac
+        shift
+    done
+    
+    # Load package management module
+    stacker_require "package" || return 1
+    
+    if [ "$all_scopes" = true ]; then
+        for s in local user system; do
+            echo ""
+            stacker_list_packages "$s"
+        done
+    else
+        stacker_list_packages "$scope"
+    fi
+}
+
+stacker_cli_enable() {
+    local name="$1"
+    local scope="user"
+    
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --local)
+                scope="local"
+                ;;
+            --user)
+                scope="user"
+                ;;
+            --system)
+                scope="system"
+                ;;
+            --help|-h)
+                cat << 'EOF'
+Usage: stacker enable <package-name> [OPTIONS]
+
+Enable installed package
+
+Options:
+  --local                   Enable in project (.stacker/enabled)
+  --user                    Enable for user (~/.config/stacker/enabled) [default]
+  --system                  Enable system-wide (/etc/stacker/enabled)
+  --help, -h                Show this help
+
+Examples:
+  stacker enable air                     # Enable for user
+  stacker enable air --system            # Enable system-wide
+  stacker enable air --local             # Enable in project
+EOF
+                return 0
+                ;;
+            -*)
+                if [ -n "$name" ]; then
+                    shift
+                    continue
+                fi
+                name="$1"
+                ;;
+            *)
+                if [ -z "$name" ]; then
+                    name="$1"
+                fi
+                ;;
+        esac
+        shift
+    done
+    
+    if [ -z "$name" ]; then
+        stacker_error "Package name required"
+        return 1
+    fi
+    
+    # Load package management module
+    stacker_require "package" || return 1
+    
+    stacker_enable_package "$name" "$scope"
+}
+
+stacker_cli_disable() {
+    local name="$1"
+    local scope="user"
+    
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --local)
+                scope="local"
+                ;;
+            --user)
+                scope="user"
+                ;;
+            --system)
+                scope="system"
+                ;;
+            --help|-h)
+                cat << 'EOF'
+Usage: stacker disable <package-name> [OPTIONS]
+
+Disable installed package (keeps package, removes from enabled)
+
+Options:
+  --local                   Disable in project (.stacker/enabled)
+  --user                    Disable for user (~/.config/stacker/enabled) [default]
+  --system                  Disable system-wide (/etc/stacker/enabled)
+  --help, -h                Show this help
+
+Examples:
+  stacker disable air                    # Disable for user
+  stacker disable air --system           # Disable system-wide
+  stacker disable air --local            # Disable in project
+EOF
+                return 0
+                ;;
+            -*)
+                if [ -n "$name" ]; then
+                    shift
+                    continue
+                fi
+                name="$1"
+                ;;
+            *)
+                if [ -z "$name" ]; then
+                    name="$1"
+                fi
+                ;;
+        esac
+        shift
+    done
+    
+    if [ -z "$name" ]; then
+        stacker_error "Package name required"
+        return 1
+    fi
+    
+    # Load package management module
+    stacker_require "package" || return 1
+    
+    stacker_disable_package "$name" "$scope"
+}
+
+stacker_cli_search() {
+    local query="$1"
+    
+    if [ "$1" = "--help" ] || [ "$1" = "-h" ] || [ -z "$query" ]; then
+        cat << 'EOF'
+Usage: stacker search <query>
+
+Search for packages (coming soon)
+
+Arguments:
+  query                     Search query
+
+Examples:
+  stacker search database               # Search for database packages
+  stacker search akaoio                 # Search for packages from akaoio
+  
+Note: Currently in development. You can install packages directly:
+  stacker add gh:user/repo              # Install from GitHub
+  stacker add gl:user/repo              # Install from GitLab
+EOF
+        return 0
+    fi
+    
+    # Load package management module
+    stacker_require "package" || return 1
+    
+    stacker_search_packages "$query"
+}
+
+stacker_cli_info() {
+    local name="$1"
+    local scope="user"
+    
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --local)
+                scope="local"
+                ;;
+            --user)
+                scope="user"
+                ;;
+            --system)
+                scope="system"
+                ;;
+            --help|-h)
+                cat << 'EOF'
+Usage: stacker info <package-name> [OPTIONS]
+
+Show package information
+
+Options:
+  --local                   Show project package info (.stacker/)
+  --user                    Show user package info (~/.local/share/stacker) [default]
+  --system                  Show system package info (/usr/local/share/stacker)
+  --help, -h                Show this help
+
+Examples:
+  stacker info air                      # Show info for user package
+  stacker info air --system             # Show info for system package
+EOF
+                return 0
+                ;;
+            -*)
+                if [ -n "$name" ]; then
+                    shift
+                    continue
+                fi
+                name="$1"
+                ;;
+            *)
+                if [ -z "$name" ]; then
+                    name="$1"
+                fi
+                ;;
+        esac
+        shift
+    done
+    
+    if [ -z "$name" ]; then
+        stacker_error "Package name required"
+        return 1
+    fi
+    
+    # Load package management module
+    stacker_require "package" || return 1
+    
+    stacker_package_info "$name" "$scope"
 }
 
 # Handle CLI arguments when run directly

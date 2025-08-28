@@ -191,7 +191,7 @@ stacker_get_config() {
     fi
     
     # Check environment variable first (highest priority)
-    eval "value=\${$env_var}"
+    value=$(eval "echo \"\$$env_var\"")
     if [ -n "$value" ]; then
         echo "$value"
         return 0

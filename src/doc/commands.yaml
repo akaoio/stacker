@@ -1,13 +1,13 @@
 commands:
   main:
-    name: "manager"
+    name: "stacker"
     description: "Universal POSIX shell framework for system management"
-    usage: "./stacker.sh [COMMAND] [OPTIONS]"
+    usage: "stacker [COMMAND] [OPTIONS]"
     
   subcommands:
     - name: "init, -i"
       description: "Initialize Stacker framework in current directory"
-      usage: "manager init [OPTIONS]"
+      usage: "stacker init [OPTIONS]"
       aliases: ["init", "-i"]
       options:
         - flag: "--template, -t"
@@ -20,26 +20,26 @@ commands:
         - flag: "--script"
           description: "Main script name"
       examples:
-        - command: "manager init"
+        - command: "stacker init"
           description: "Initialize with interactive prompts"
-        - command: "manager init --template=cli --name=mytool"
+        - command: "stacker init --template=cli --name=mytool"
           description: "Initialize CLI application template"
     
     - name: "config, -c"
       description: "Manage configuration settings"
-      usage: "manager config [get|set|list] [key] [value]"
+      usage: "stacker config [get|set|list] [key] [value]"
       aliases: ["config", "-c"]
       examples:
-        - command: "manager config list"
+        - command: "stacker config list"
           description: "List all configuration settings"
-        - command: "manager config get update.interval"
+        - command: "stacker config get update.interval"
           description: "Get specific configuration value"
-        - command: "manager config set update.interval 3600"
+        - command: "stacker config set update.interval 3600"
           description: "Set configuration value"
     
     - name: "install"
-      description: "Install Manager-based application"
-      usage: "manager install [--systemd|--cron|--manual] [options]"
+      description: "Install Stacker-based application"
+      usage: "stacker install [--systemd|--cron|--manual] [options]"
       options:
         - flag: "--systemd"
           description: "Install as systemd service"
@@ -54,14 +54,14 @@ commands:
         - flag: "--redundant"
           description: "Both systemd and cron"
       examples:
-        - command: "manager install --systemd"
+        - command: "stacker install --systemd"
           description: "Install as system service"
-        - command: "manager install --cron --interval=300"
+        - command: "stacker install --cron --interval=300"
           description: "Install with 5-minute cron schedule"
     
     - name: "update, -u"
-      description: "Update Manager-based application"
-      usage: "manager update [--check|--force]"
+      description: "Update Stacker-based application"
+      usage: "stacker update [--check|--force]"
       aliases: ["update", "-u"]
       options:
         - flag: "--check"
@@ -71,55 +71,55 @@ commands:
         - flag: "--rollback"
           description: "Rollback to previous version"
       examples:
-        - command: "manager update --check"
+        - command: "stacker update --check"
           description: "Check for available updates"
-        - command: "manager update"
+        - command: "stacker update"
           description: "Perform update if available"
     
     - name: "service, -s"
-      description: "Control Manager service"
-      usage: "manager service [start|stop|restart|status|enable|disable]"
+      description: "Control Stacker service"
+      usage: "stacker service [start|stop|restart|status|enable|disable]"
       aliases: ["service", "-s"]
       examples:
-        - command: "manager service start"
+        - command: "stacker service start"
           description: "Start the service"
-        - command: "manager service status"
+        - command: "stacker service status"
           description: "Check service status"
-        - command: "manager service enable"
+        - command: "stacker service enable"
           description: "Enable service at boot"
     
     - name: "health"
       description: "Check system health and diagnostics"
-      usage: "manager health [--verbose]"
+      usage: "stacker health [--verbose]"
       options:
         - flag: "--verbose"
           description: "Show detailed diagnostic information"
       examples:
-        - command: "manager health"
+        - command: "stacker health"
           description: "Quick health check"
-        - command: "manager health --verbose"
+        - command: "stacker health --verbose"
           description: "Detailed system diagnostics"
     
     - name: "status"
-      description: "Show current status of Manager-based application"
-      usage: "manager status"
+      description: "Show current status of Stacker-based application"
+      usage: "stacker status"
       examples:
-        - command: "manager status"
+        - command: "stacker status"
           description: "Display installation and service status"
     
     - name: "rollback, -r"
       description: "Rollback to previous version"
-      usage: "manager rollback [version]"
+      usage: "stacker rollback [version]"
       aliases: ["rollback", "-r"]
       examples:
-        - command: "manager rollback"
+        - command: "stacker rollback"
           description: "Rollback to previous version"
-        - command: "manager rollback 1.2.3"
+        - command: "stacker rollback 1.2.3"
           description: "Rollback to specific version"
     
     - name: "self-update"
       description: "Update Stacker framework itself"
-      usage: "manager self-update [--check]"
+      usage: "stacker self-update [--check]"
       options:
         - flag: "--check"
           description: "Check for framework updates"
@@ -127,14 +127,14 @@ commands:
           description: "Update channel (stable, beta)"
           default: "stable"
       examples:
-        - command: "manager self-update --check"
-          description: "Check for Manager updates"
-        - command: "manager self-update"
+        - command: "stacker self-update --check"
+          description: "Check for Stacker updates"
+        - command: "stacker self-update"
           description: "Update Stacker framework"
     
     - name: "version, -v"
       description: "Show version information"
-      usage: "manager version [--json]"
+      usage: "stacker version [--json]"
       aliases: ["version", "-v"]
       options:
         - flag: "--json"
@@ -142,12 +142,12 @@ commands:
     
     - name: "help, -h"
       description: "Show help information"
-      usage: "manager help [command]"
+      usage: "stacker help [command]"
       aliases: ["help", "-h"]
       examples:
-        - command: "manager help"
+        - command: "stacker help"
           description: "Show general help"
-        - command: "manager help install"
+        - command: "stacker help install"
           description: "Show help for install command"
 
 environment_variables:

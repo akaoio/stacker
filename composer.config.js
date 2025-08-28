@@ -1,4 +1,4 @@
-// @akaoio/composer configuration for Manager cortex
+// @akaoio/composer configuration for Stacker cortex
 module.exports = {
   sources: {
     docs: {

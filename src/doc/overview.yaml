@@ -5,7 +5,7 @@ project:
   author: "AKAO.IO"
   repository: "https://github.com/akaoio/stacker"
   description: "Universal POSIX shell framework for system management - The foundational framework that standardizes patterns across all technologies with modular architecture"
-  philosophy: "Manager brings order to chaos - a universal shell framework with modular loading that works everywhere, forever."
+  philosophy: "Stacker brings order to chaos - a universal shell framework with modular loading that works everywhere, forever."
 
 core_principles:
   - title: "Universal POSIX Compliance"
@@ -21,7 +21,7 @@ core_principles:
     critical: true
   
   - title: "Eternal Infrastructure"
-    description: "Built to last forever - when languages come and go, Manager remains"
+    description: "Built to last forever - when languages come and go, Stacker remains"
     critical: true
 
 architecture:
@@ -30,7 +30,7 @@ architecture:
   components:
     - name: "Core Module (stacker-core.sh)"
       description: "Central framework providing common functions, error handling, logging, and state management"
-      responsibility: "Foundation layer for all Manager operations"
+      responsibility: "Foundation layer for all Stacker operations"
     
     - name: "Configuration Module (stacker-config.sh)"
       description: "XDG-compliant configuration management with JSON support and environment variable overrides"
@@ -52,7 +52,7 @@ architecture:
       description: "Complete command-line interface with interactive commands, argument parsing, and comprehensive help system"
       responsibility: "Direct CLI execution, user interaction, and command processing with full subcommand support"
     
-    - name: "Self-Update Module (manager-self-update.sh)"
+    - name: "Self-Update Module (stacker-self-update.sh)"
       description: "Auto-update capability with integrity verification and atomic updates"
       responsibility: "Framework self-maintenance"
 
@@ -103,8 +103,8 @@ use_cases:
   - "Infrastructure automation without dependencies"
   - "Emergency recovery systems"
 
-why_manager:
-  title: "Why Manager Matters"
+why_stacker:
+  title: "Why Stacker Matters"
   description: "Stacker is the foundational framework that brings consistency and reliability to shell-based system management. While modern tools require complex dependencies and runtimes, Stacker provides a universal, dependency-free solution that works everywhere, forever."
   
   benefits:
