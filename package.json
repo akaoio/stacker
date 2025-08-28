@@ -1,0 +1,63 @@
+{
+  "name": "@akaoio/stacker",
+  "version": "0.0.2",
+  "description": "Universal POSIX shell framework - TypeScript + Shell hybrid architecture",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    },
+    "./shell": "./stacker.sh"
+  },
+  "bin": {
+    "stacker": "./stacker.sh"
+  },
+  "scripts": {
+    "build": "builder build",
+    "dev": "builder dev",
+    "test": "battle test",
+    "docs": "composer generate",
+    "clean": "rm -rf dist/",
+    "prepublish": "npm run build"
+  },
+  "keywords": [
+    "shell", 
+    "posix", 
+    "framework", 
+    "typescript", 
+    "system-management",
+    "devops",
+    "automation"
+  ],
+  "author": "AKAO.IO",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/akaoio/stacker.git"
+  },
+  "devDependencies": {
+    "@akaoio/builder": "latest",
+    "@akaoio/composer": "latest",
+    "@akaoio/battle": "latest"
+  },
+  "files": [
+    "dist/",
+    "stacker.sh",
+    "stacker-loader.sh",
+    "modules/",
+    "templates/",
+    "README.md",
+    "CLAUDE.md"
+  ],
+  "engines": {
+    "node": ">=16"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

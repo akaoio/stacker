@@ -1,9 +1,9 @@
 #!/bin/sh
 # @akaoio/stacker - Universal Shell Framework
-# MODULAR VERSION - Loads only required modules on-demand
+# EARLY DEVELOPMENT - Hot development state, humble and honest versioning
 
 # Framework version
-STACKER_VERSION="2.0.0"
+STACKER_VERSION="0.0.2"
 
 # Framework directory detection
 if [ -z "$STACKER_DIR" ]; then
