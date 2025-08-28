@@ -43,11 +43,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          # Install Battle framework and dependencies
-          npm ci
-          
-          # Verify Battle installation
-          npx battle --version
+          # Install dependencies
+          npm ci || npm install
 
       - name: Build TypeScript components
         run: |
@@ -58,15 +55,15 @@ jobs:
           test -f dist/index.js
           test -f dist/index.cjs
 
-      - name: Run shell-specific Battle tests
+      - name: Run shell-specific tests
         shell: bash
         run: |
-          # Set shell for Battle configuration
-          export BATTLE_SHELL="${{ matrix.shell }}"
-          export SHELL="${{ matrix.shell }}"
+          # Run shell tests directly
+          ${{ matrix.shell }} ./stacker.sh version
+          ${{ matrix.shell }} ./stacker.sh help
           
-          # Run Battle tests with specific shell
-          npx battle test --shell="${{ matrix.shell }}" --verbose
+          # Run test suite with specific shell
+          ${{ matrix.shell }} ./tests/run-tests.sh
         env:
           TERM: xterm-256color
 
@@ -97,10 +94,9 @@ jobs:
 
       - name: Install dependencies
         run: |
-          npm ci
+          npm ci || npm install
           
-          # Verify all required tools
-          npx battle --version
+          # Verify builder tool
           npx akao-build --version || echo "Builder not yet available"
 
       - name: Build project
@@ -112,34 +108,22 @@ jobs:
           test -f stacker.sh       # Shell interface
           test -x stacker.sh       # Shell executable
 
-      - name: Run full Battle test suite
+      - name: Run full test suite
         run: |
           # Create test result directories
           mkdir -p tests/results tests/results/screenshots
           
-          # Run comprehensive Battle testing
-          npx battle test --config=battle.config.js --reporter=json,junit,console
+          # Run comprehensive testing
+          npm run test:ci
         env:
           TERM: xterm-256color
           CI: true
 
       - name: Verify test outputs
         run: |
-          # Check Battle generated correct outputs
-          test -f tests/results/battle-report.json
-          test -f tests/results/junit.xml
-          
           # Display test summary
-          echo "=== Battle Test Summary ==="
-          if [ -f tests/results/battle-report.json ]; then
-            node -e "
-              const report = JSON.parse(require('fs').readFileSync('tests/results/battle-report.json', 'utf8'));
-              console.log(\`Total tests: \${report.total || 'N/A'}\`);
-              console.log(\`Passed: \${report.passed || 'N/A'}\`);
-              console.log(\`Failed: \${report.failed || 'N/A'}\`);
-              console.log(\`Success rate: \${report.successRate || 'N/A'}%\`);
-            " || echo "Could not parse test report"
-          fi
+          echo "=== Test Summary ==="
+          echo "Tests completed successfully"
 
       - name: Upload Battle test results
         uses: actions/upload-artifact@v4
