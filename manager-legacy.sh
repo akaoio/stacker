@@ -1,33 +1,28 @@
 #!/bin/sh
 # @akaoio/manager - Universal Shell Framework
-# MODULAR VERSION - Loads only required modules on-demand
+# Main entry point and orchestration layer
 
 # Framework version
-MANAGER_VERSION="2.0.0"
+MANAGER_VERSION="1.0.0"
 
 # Framework directory detection
 if [ -z "$MANAGER_DIR" ]; then
     MANAGER_DIR="$(dirname "$0")"
 fi
 
-# Load the module loading system first
-. "$MANAGER_DIR/manager-loader.sh" || {
-    echo "FATAL: Cannot load module loader" >&2
-    exit 1
-}
-
-# Initialize the loader (loads core module)
-manager_loader_init || {
-    echo "FATAL: Cannot initialize module loader" >&2
-    exit 1
-}
+# Load core modules - POSIX compliant
+. "$MANAGER_DIR/manager-core.sh"
+. "$MANAGER_DIR/manager-config.sh"
+. "$MANAGER_DIR/manager-install.sh"
+. "$MANAGER_DIR/manager-service.sh"
+. "$MANAGER_DIR/manager-update.sh"
+. "$MANAGER_DIR/manager-self-update.sh"
 
 # Global configuration variables
 MANAGER_TECH_NAME=""
 MANAGER_REPO_URL=""
 MANAGER_MAIN_SCRIPT=""
 MANAGER_SERVICE_DESCRIPTION=""
-
 # Auto-detect best installation directory
 if [ -n "$INSTALL_DIR" ]; then
     # User specified directory
@@ -90,7 +85,7 @@ manager_init() {
     return 0
 }
 
-# Complete installation workflow with modular loading
+# Complete installation workflow
 # Usage: manager_install [--service] [--cron] [--auto-update] [--interval=N]
 manager_install() {
     local use_service=false
@@ -133,20 +128,13 @@ manager_install() {
     
     manager_log "Starting installation of $MANAGER_TECH_NAME..."
     
-    # Load required modules for installation
-    manager_require "config install" || return 1
-    
     # Core installation steps
     manager_check_requirements || return 1
     manager_create_xdg_dirs || return 1  
     manager_create_clean_clone || return 1
     manager_install_from_clone || return 1
     
-    # Optional components - load service module if needed
-    if [ "$use_service" = true ] || [ "$use_cron" = true ]; then
-        manager_require "service" || return 1
-    fi
-    
+    # Optional components
     if [ "$use_service" = true ]; then
         manager_setup_systemd_service || manager_warn "Failed to setup systemd service"
     fi
@@ -156,16 +144,17 @@ manager_install() {
     fi
     
     if [ "$use_auto_update" = true ]; then
-        # Load update module for auto-update
-        manager_require "update" || return 1
         manager_setup_auto_update || manager_warn "Failed to setup auto-update"
     fi
+    
+    # Register this installation for manager self-updates
+    manager_register_installation "$(pwd)" "$MANAGER_DIR" || true
     
     manager_log "Installation of $MANAGER_TECH_NAME completed successfully"
     return 0
 }
 
-# Setup services (systemd + optional cron backup) with modular loading
+# Setup services (systemd + optional cron backup)
 # Usage: manager_setup_service [interval_minutes]
 manager_setup_service() {
     local interval="${1:-5}"
@@ -174,9 +163,6 @@ manager_setup_service() {
         manager_error "Manager not initialized"
         return 1
     fi
-    
-    # Load service module
-    manager_require "service" || return 1
     
     manager_log "Setting up service management for $MANAGER_TECH_NAME..."
     
@@ -199,7 +185,7 @@ manager_setup_service() {
     return 0
 }
 
-# Uninstall technology with modular loading
+# Uninstall technology
 # Usage: manager_uninstall [--keep-config] [--keep-data]
 manager_uninstall() {
     local keep_config=false
@@ -223,9 +209,6 @@ manager_uninstall() {
     fi
     
     manager_log "Uninstalling $MANAGER_TECH_NAME..."
-    
-    # Load service module for cleanup
-    manager_require "service" || true
     
     # Stop and disable services
     manager_stop_service 2>/dev/null || true
@@ -270,7 +253,7 @@ manager_uninstall() {
     return 0
 }
 
-# Show status of technology with modular loading
+# Show status of technology
 # Usage: manager_status
 manager_status() {
     if [ -z "$MANAGER_TECH_NAME" ]; then
@@ -304,14 +287,10 @@ manager_status() {
     echo "  📁 Data: $MANAGER_DATA_DIR"  
     echo "  📁 State: $MANAGER_STATE_DIR"
     
-    # Service status - load module only if needed
+    # Service status
     echo ""
     echo "🔧 Service Status:"
-    if manager_require "service" 2>/dev/null; then
-        manager_service_status
-    else
-        echo "  ❌ Service module not available"
-    fi
+    manager_service_status
     
     # Cron status
     echo ""
@@ -329,18 +308,14 @@ manager_status() {
 
 # Show manager framework version
 manager_version() {
-    echo "Manager Framework v$MANAGER_VERSION (Modular)"
+    echo "Manager Framework v$MANAGER_VERSION"
     echo "Universal POSIX Shell Framework for AKAO Technologies"
-    echo ""
-    echo "Loaded modules: $MANAGER_LOADED_MODULES"
-    echo "Available modules:"
-    manager_list_available_modules
 }
 
 # Show help
 manager_help() {
     cat << 'EOF'
-Manager Framework v2.0 - Universal Shell Framework (Modular)
+Manager Framework - Universal Shell Framework
 
 Usage:
   Source manager.sh and use these functions:
@@ -353,55 +328,21 @@ Usage:
   manager_version
   manager_help
 
-Module Management:
-  manager_require "module1 module2"  # Load specific modules
-  manager_list_loaded_modules        # Show loaded modules
-  manager_list_available_modules     # Show available modules
-  manager_module_info "module_name"  # Show module information
-
 Example:
   #!/bin/sh
   . ./manager.sh
   manager_init "mytool" "https://github.com/user/mytool.git" "mytool.sh"
   manager_install --redundant --auto-update
 
-Backwards Compatibility:
-  Set MANAGER_LEGACY_MODE=1 to load all modules at startup (like v1.0)
-
 EOF
 }
 
-# Backwards compatibility mode
-if [ "${MANAGER_LEGACY_MODE:-0}" = "1" ]; then
-    manager_debug "Legacy mode enabled - loading all modules"
-    manager_require "config install service update self_update" >/dev/null 2>&1 || true
-fi
-
-# Handle self-update commands (load module on-demand)
+# Handle self-update commands
 if [ $# -gt 0 ]; then
     case "$1" in
         --self-update|--discover|--setup-auto-update|--remove-auto-update|--self-status|--register)
-            if manager_require "self_update"; then
-                manager_handle_self_update "$@"
-                exit $?
-            else
-                manager_error "Self-update module not available"
-                exit 1
-            fi
-            ;;
-        --module-info)
-            if [ -n "$2" ]; then
-                manager_module_info "$2"
-            else
-                manager_list_available_modules
-            fi
-            exit 0
-            ;;
-        --list-modules)
-            manager_list_loaded_modules
-            echo ""
-            manager_list_available_modules
-            exit 0
+            manager_handle_self_update "$@"
+            exit $?
             ;;
     esac
 fi

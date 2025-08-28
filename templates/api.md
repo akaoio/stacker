@@ -1,6 +1,6 @@
-# @akaoio/manager API Reference
+# {{project.name}} API Reference
 
-Universal POSIX shell framework for system management - The foundational framework that standardizes patterns across all technologies
+{{project.description}}
 
 ## Core API
 
@@ -261,43 +261,13 @@ module_verify() {
 
 ### Core Variables
 
+{{#each environment_variables}}
+#### {{this.name}}
+{{this.description}}
 
-#### MANAGER_CONFIG_DIR
-Override default config directory
+**Default**: `{{this.default}}`
 
-**Default**: `$HOME/.config/manager`
-
-
-#### MANAGER_DATA_DIR
-Override default data directory
-
-**Default**: `$HOME/.local/share/manager`
-
-
-#### MANAGER_LOG_LEVEL
-Logging level (debug, info, warn, error)
-
-**Default**: `info`
-
-
-#### MANAGER_UPDATE_CHANNEL
-Update channel (stable, beta, nightly)
-
-**Default**: `stable`
-
-
-#### MANAGER_AUTO_UPDATE
-Enable automatic updates
-
-**Default**: `false`
-
-
-#### MANAGER_PREFIX
-Installation prefix
-
-**Default**: `/usr/local`
-
-
+{{/each}}
 
 ### Module Variables
 
@@ -404,6 +374,6 @@ module_cleanup() {
 
 ---
 
-*@akaoio/manager API Reference*
+*{{project.name}} API Reference*
 
-*Version 1.0.0 | License: MIT*
+*Version {{project.version}} | License: {{project.license}}*
