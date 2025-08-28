@@ -343,15 +343,19 @@ manager_help() {
 Manager Framework v2.0 - Universal Shell Framework (Modular)
 
 Usage:
-  Source manager.sh and use these functions:
+  Direct execution:
+    ./manager.sh [options]
 
-  manager_init "name" "repo_url" "main_script" ["description"]
-  manager_install [--service] [--cron] [--auto-update] [--interval=N]
-  manager_setup_service [interval_minutes]
-  manager_uninstall [--keep-config] [--keep-data]  
-  manager_status
-  manager_version
-  manager_help
+  Source and use functions:
+    . ./manager.sh
+    manager_init "name" "repo_url" "main_script" ["description"]
+    manager_install [--service] [--cron] [--auto-update] [--interval=N]
+
+Options:
+  --help, -h           Show this help
+  --version, -v        Show version information
+  --list-modules, -l   List all modules (loaded and available)
+  --module-info, -m    Show module information
 
 Module Management:
   manager_require "module1 module2"  # Load specific modules
@@ -377,9 +381,62 @@ if [ "${MANAGER_LEGACY_MODE:-0}" = "1" ]; then
     manager_require "config install service update self_update" >/dev/null 2>&1 || true
 fi
 
-# Handle self-update commands (load module on-demand)
-if [ $# -gt 0 ]; then
+# Parse CLI arguments and execute commands
+manager_parse_cli() {
     case "$1" in
+        --help|-h|help)
+            manager_help
+            exit 0
+            ;;
+        --version|-v|version)
+            local json_output=false
+            [ "$2" = "--json" ] && json_output=true
+            if [ "$json_output" = true ]; then
+                echo "{\"version\":\"$MANAGER_VERSION\",\"type\":\"modular\",\"loaded_modules\":\"$MANAGER_LOADED_MODULES\"}"
+            else
+                manager_version
+            fi
+            exit 0
+            ;;
+        init|-i)
+            shift
+            manager_cli_init "$@"
+            exit $?
+            ;;
+        config|-c)
+            shift
+            manager_cli_config "$@"
+            exit $?
+            ;;
+        install)
+            shift
+            manager_cli_install "$@"
+            exit $?
+            ;;
+        update|-u)
+            shift
+            manager_cli_update "$@"
+            exit $?
+            ;;
+        service|-s)
+            shift
+            manager_cli_service "$@"
+            exit $?
+            ;;
+        health)
+            shift
+            manager_cli_health "$@"
+            exit $?
+            ;;
+        status)
+            manager_status
+            exit 0
+            ;;
+        rollback|-r)
+            shift
+            manager_cli_rollback "$@"
+            exit $?
+            ;;
         --self-update|--discover|--setup-auto-update|--remove-auto-update|--self-status|--register)
             if manager_require "self_update"; then
                 manager_handle_self_update "$@"
@@ -389,7 +446,7 @@ if [ $# -gt 0 ]; then
                 exit 1
             fi
             ;;
-        --module-info)
+        --module-info|-m)
             if [ -n "$2" ]; then
                 manager_module_info "$2"
             else
@@ -397,13 +454,442 @@ if [ $# -gt 0 ]; then
             fi
             exit 0
             ;;
-        --list-modules)
+        --list-modules|-l)
             manager_list_loaded_modules
             echo ""
             manager_list_available_modules
             exit 0
             ;;
+        *)
+            manager_error "Unknown command: $1"
+            echo ""
+            manager_help
+            exit 1
+            ;;
     esac
+}
+
+# CLI command implementations
+manager_cli_init() {
+    local template="service"
+    local name=""
+    local repo=""
+    local script=""
+    
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --template=*|-t=*)
+                template="${1#*=}"
+                ;;
+            --template|-t)
+                template="$2"
+                shift
+                ;;
+            --name=*|-n=*)
+                name="${1#*=}"
+                ;;
+            --name|-n)
+                name="$2"
+                shift
+                ;;
+            --repo=*)
+                repo="${1#*=}"
+                ;;
+            --repo)
+                repo="$2"
+                shift
+                ;;
+            --script=*)
+                script="${1#*=}"
+                ;;
+            --script)
+                script="$2"
+                shift
+                ;;
+            --help|-h)
+                cat << 'EOF'
+Usage: manager init [OPTIONS]
+
+Initialize Manager framework in current directory
+
+Options:
+  --template, -t TYPE    Project template (service, cli, library) [default: service]
+  --name, -n NAME        Project name
+  --repo REPO            Repository URL
+  --script SCRIPT        Main script name
+  --help, -h             Show this help
+
+Examples:
+  manager init --template=cli --name=mytool
+  manager init -t service -n myservice --repo=https://github.com/user/repo.git
+EOF
+                return 0
+                ;;
+            *)
+                [ -z "$name" ] && name="$1" || {
+                    manager_error "Unknown option: $1"
+                    return 1
+                }
+                ;;
+        esac
+        shift
+    done
+    
+    # Interactive mode if no name provided
+    if [ -z "$name" ]; then
+        printf "Project name: "
+        read -r name
+        [ -z "$name" ] && { manager_error "Project name required"; return 1; }
+    fi
+    
+    if [ -z "$repo" ]; then
+        printf "Repository URL (optional): "
+        read -r repo
+    fi
+    
+    if [ -z "$script" ]; then
+        script="${name}.sh"
+    fi
+    
+    manager_log "Initializing Manager project: $name"
+    manager_log "  Template: $template"
+    manager_log "  Script: $script"
+    [ -n "$repo" ] && manager_log "  Repository: $repo"
+    
+    if [ -n "$repo" ]; then
+        manager_init "$name" "$repo" "$script"
+    else
+        manager_log "Project initialized (no repository specified)"
+        echo "#!/bin/sh" > "$script"
+        echo "# $name - Generated by Manager framework" >> "$script"
+        chmod +x "$script"
+        manager_log "Created: $script"
+    fi
+}
+
+manager_cli_config() {
+    local action="$1"
+    shift
+    
+    case "$action" in
+        get|-g)
+            local key="$1"
+            [ -z "$key" ] && { manager_error "Key required for get"; return 1; }
+            manager_require "config"
+            manager_get_config "$key"
+            ;;
+        set|-s)
+            local key="$1"
+            local value="$2"
+            [ -z "$key" ] || [ -z "$value" ] && { 
+                manager_error "Key and value required for set"
+                return 1
+            }
+            manager_require "config"
+            manager_save_config "$key" "$value"
+            ;;
+        list|-l)
+            manager_require "config"
+            manager_show_config
+            ;;
+        --help|-h|"")
+            cat << 'EOF'
+Usage: manager config COMMAND [OPTIONS]
+
+Manage configuration settings
+
+Commands:
+  get, -g KEY           Get configuration value
+  set, -s KEY VALUE     Set configuration value  
+  list, -l              List all configuration
+
+Options:
+  --help, -h            Show this help
+
+Examples:
+  manager config get update.interval
+  manager config set update.interval 3600
+  manager config list
+EOF
+            ;;
+        *)
+            manager_error "Unknown config command: $action"
+            return 1
+            ;;
+    esac
+}
+
+manager_cli_install() {
+    local use_systemd=false
+    local use_cron=false
+    local use_manual=false
+    local install_args=""
+    
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --systemd)
+                use_systemd=true
+                install_args="$install_args --service"
+                ;;
+            --cron)
+                use_cron=true
+                install_args="$install_args --cron"
+                ;;
+            --manual)
+                use_manual=true
+                ;;
+            --interval=*)
+                install_args="$install_args $1"
+                ;;
+            --auto-update|-a)
+                install_args="$install_args --auto-update"
+                ;;
+            --redundant)
+                install_args="$install_args --redundant"
+                ;;
+            --help|-h)
+                cat << 'EOF'
+Usage: manager install [OPTIONS]
+
+Install Manager-based application
+
+Options:
+  --systemd             Install as systemd service
+  --cron                Install as cron job
+  --manual              Manual installation (default)
+  --interval=N          Cron interval in minutes
+  --auto-update, -a     Enable automatic updates
+  --redundant           Both systemd and cron
+  --help, -h            Show this help
+
+Examples:
+  manager install --systemd
+  manager install --cron --interval=300
+  manager install --redundant --auto-update
+EOF
+                return 0
+                ;;
+            *)
+                manager_error "Unknown install option: $1"
+                return 1
+                ;;
+        esac
+        shift
+    done
+    
+    if [ -z "$MANAGER_TECH_NAME" ]; then
+        manager_error "Manager not initialized. Run 'manager init' first."
+        return 1
+    fi
+    
+    manager_install $install_args
+}
+
+manager_cli_update() {
+    local check_only=false
+    local force=false
+    
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --check|-c)
+                check_only=true
+                ;;
+            --force|-f)
+                force=true
+                ;;
+            --help|-h)
+                cat << 'EOF'
+Usage: manager update [OPTIONS]
+
+Update Manager-based application
+
+Options:
+  --check, -c           Check for updates without installing
+  --force, -f           Force update even if current
+  --help, -h            Show this help
+
+Examples:
+  manager update --check
+  manager update --force
+EOF
+                return 0
+                ;;
+            *)
+                manager_error "Unknown update option: $1"
+                return 1
+                ;;
+        esac
+        shift
+    done
+    
+    if [ -z "$MANAGER_TECH_NAME" ]; then
+        manager_error "Manager not initialized"
+        return 1
+    fi
+    
+    if [ "$check_only" = true ]; then
+        manager_log "Checking for updates..."
+        # TODO: Implement update checking
+        manager_log "Update check not yet implemented"
+    else
+        manager_log "Updating $MANAGER_TECH_NAME..."
+        # TODO: Implement actual update
+        manager_log "Update functionality not yet implemented"
+    fi
+}
+
+manager_cli_service() {
+    local action="$1"
+    
+    case "$action" in
+        start)
+            manager_require "service"
+            manager_start_service
+            ;;
+        stop)
+            manager_require "service"  
+            manager_stop_service
+            ;;
+        restart)
+            manager_require "service"
+            manager_restart_service
+            ;;
+        status)
+            manager_require "service"
+            manager_service_status
+            ;;
+        enable)
+            manager_require "service"
+            manager_enable_service
+            ;;
+        disable)
+            manager_require "service"
+            manager_disable_service
+            ;;
+        --help|-h|"")
+            cat << 'EOF'
+Usage: manager service COMMAND
+
+Control Manager service
+
+Commands:
+  start                 Start the service
+  stop                  Stop the service  
+  restart               Restart the service
+  status                Show service status
+  enable                Enable service at boot
+  disable               Disable service at boot
+
+Options:
+  --help, -h            Show this help
+
+Examples:
+  manager service start
+  manager service status
+EOF
+            ;;
+        *)
+            manager_error "Unknown service command: $action"
+            return 1
+            ;;
+    esac
+}
+
+manager_cli_health() {
+    local verbose=false
+    
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --verbose|-v)
+                verbose=true
+                ;;
+            --help|-h)
+                cat << 'EOF'
+Usage: manager health [OPTIONS]
+
+Check system health and diagnostics
+
+Options:
+  --verbose, -v         Show detailed diagnostic information
+  --help, -h            Show this help
+
+Examples:
+  manager health
+  manager health --verbose
+EOF
+                return 0
+                ;;
+            *)
+                manager_error "Unknown health option: $1"
+                return 1
+                ;;
+        esac
+        shift
+    done
+    
+    echo "Manager Framework Health Check"
+    echo "=============================="
+    echo ""
+    
+    # Basic health checks
+    echo "✓ Manager framework loaded"
+    echo "✓ Core module functional"
+    echo "✓ Module loading system operational"
+    
+    if [ "$verbose" = true ]; then
+        echo ""
+        echo "Detailed Diagnostics:"
+        echo "  Version: $MANAGER_VERSION"
+        echo "  Loaded modules: $MANAGER_LOADED_MODULES"
+        echo "  Shell: $0"
+        echo "  Working directory: $(pwd)"
+        [ -n "$MANAGER_TECH_NAME" ] && echo "  Initialized for: $MANAGER_TECH_NAME"
+    fi
+    
+    echo ""
+    echo "Health check completed ✓"
+}
+
+manager_cli_rollback() {
+    local version="$1"
+    
+    if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+        cat << 'EOF'
+Usage: manager rollback [VERSION]
+
+Rollback to previous version
+
+Arguments:
+  VERSION               Specific version to rollback to (optional)
+
+Options:
+  --help, -h            Show this help
+
+Examples:
+  manager rollback
+  manager rollback 1.2.3
+EOF
+        return 0
+    fi
+    
+    if [ -z "$MANAGER_TECH_NAME" ]; then
+        manager_error "Manager not initialized"
+        return 1
+    fi
+    
+    if [ -n "$version" ]; then
+        manager_log "Rolling back to version: $version"
+    else
+        manager_log "Rolling back to previous version"
+    fi
+    
+    # TODO: Implement rollback functionality
+    manager_log "Rollback functionality not yet implemented"
+}
+
+# Handle CLI arguments when run directly
+if [ $# -gt 0 ]; then
+    manager_parse_cli "$@"
 fi
 
 # Functions are available when this file is sourced

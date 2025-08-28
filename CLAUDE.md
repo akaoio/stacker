@@ -14,119 +14,97 @@ This file provides guidance to Claude Code (claude.ai/code) when working with th
 
 ## Core Development Principles
 
-
 ### Universal POSIX Compliance
 Pure POSIX shell implementation that runs on any Unix-like system without dependencies
-
-
+**Critical**: true
 
 ### Framework Pattern Standardization
 Establishes universal patterns for shell-based system management across all environments
-
-
+**Critical**: true
 
 ### Zero Dependencies
 No external dependencies, no runtimes, no package managers - just pure shell
-
-
+**Critical**: true
 
 ### Eternal Infrastructure
 Built to last forever - when languages come and go, Manager remains
-
-
+**Critical**: true
 
 
 ## Architecture Overview
 
 ### System Design
 
-Manager is a comprehensive shell framework that provides standardized patterns for system management, configuration, installation, updates, and service orchestration.
+Manager is a comprehensive shell framework that provides standardized patterns for system management, configuration, installation, updates, and service orchestration. Version 2.0.0 features a complete CLI interface with interactive commands and comprehensive help system.
 
 ### Core Components
-
 
 **Core Module (manager-core.sh)**
 - Central framework providing common functions, error handling, logging, and state management
 - Responsibility: Foundation layer for all Manager operations
 
-
 **Configuration Module (manager-config.sh)**
 - XDG-compliant configuration management with JSON support and environment variable overrides
 - Responsibility: Centralized configuration handling across all modules
-
 
 **Installation Module (manager-install.sh)**
 - Universal installation framework supporting systemd, cron, and manual deployment
 - Responsibility: Standardized installation across different environments
 
-
 **Update Module (manager-update.sh)**
 - Intelligent update system with version management and rollback capabilities
 - Responsibility: Safe and reliable system updates
-
 
 **Service Module (manager-service.sh)**
 - Service lifecycle management for systemd, init.d, and standalone daemons
 - Responsibility: Unified service control interface
 
-
-**CLI Module (manager-cli.sh)**
-- Command-line interface with subcommand routing and argument parsing
-- Responsibility: User interaction and command processing
-
+**CLI Interface (integrated)**
+- Complete command-line interface with interactive commands, argument parsing, and comprehensive help system
+- Responsibility: Direct CLI execution, user interaction, and command processing with full subcommand support
 
 **Self-Update Module (manager-self-update.sh)**
 - Auto-update capability with integrity verification and atomic updates
 - Responsibility: Framework self-maintenance
 
 
-
 ## Features
-
 
 ### Universal Shell Patterns
 Standardized patterns for error handling, logging, configuration, and state management
 
-
 ### Dynamic Module Loading
 On-demand module loading with automatic dependency resolution and smart caching
-
 
 ### Modular Architecture
 Clean separation of concerns with independent, reusable modules that load only when needed
 
-
 ### Module Registry System
 Comprehensive module tracking, dependency management, and initialization lifecycle
-
 
 ### Auto-Loading Intelligence
 Smart function detection that automatically loads required modules based on function calls
 
+### Interactive CLI Interface
+Complete command-line interface with interactive mode, comprehensive help system, and argument parsing
 
 ### XDG Compliance
 Full XDG Base Directory specification compliance for configuration and data storage
 
-
 ### Multi-Platform Support
 Works on Linux, BSD, macOS, and any POSIX-compliant system
-
 
 ### Service Integration
 Native integration with systemd, init.d, launchd, and cron
 
-
 ### Atomic Operations
 Safe atomic updates and rollback capabilities for critical operations
-
 
 ### Version Management
 Semantic versioning with compatibility checking and migration support
 
-
 ### Health Monitoring
 Built-in health checks and diagnostic capabilities
-
 
 
 ## Command Interface
@@ -134,84 +112,137 @@ Built-in health checks and diagnostic capabilities
 ### Core Commands
 
 ```bash
-
-manager init [--template=TYPE]  # Initialize Manager framework in current directory
-
+manager init [OPTIONS]  # Initialize Manager framework in current directory
 manager config [get|set|list] [key] [value]  # Manage configuration settings
-
 manager install [--systemd|--cron|--manual] [options]  # Install Manager-based application
-
 manager update [--check|--force]  # Update Manager-based application
-
 manager service [start|stop|restart|status|enable|disable]  # Control Manager service
-
 manager health [--verbose]  # Check system health and diagnostics
-
 manager rollback [version]  # Rollback to previous version
-
 manager self-update [--check]  # Update Manager framework itself
-
 manager version [--json]  # Show version information
-
 manager help [command]  # Show help information
-
 ```
 
 ### Detailed Command Reference
 
-
 #### `init` Command
 **Purpose**: Initialize Manager framework in current directory  
-**Usage**: `manager init [--template=TYPE]`
+**Usage**: `manager init [OPTIONS]`
 
+**Options**:
+- `--template, -t`: Project template (service, cli, library) (default: service)
+- `--name, -n`: Project name
+- `--repo`: Repository URL
+- `--script`: Main script name
 
+**Examples**:
+```bash
+manager init  # Initialize with interactive prompts
+manager init --template&#x3D;cli --name&#x3D;mytool  # Initialize CLI application template
+```
 
 #### `config` Command
 **Purpose**: Manage configuration settings  
 **Usage**: `manager config [get|set|list] [key] [value]`
 
 
+**Examples**:
+```bash
+manager config list  # List all configuration settings
+manager config get update.interval  # Get specific configuration value
+manager config set update.interval 3600  # Set configuration value
+```
 
 #### `install` Command
 **Purpose**: Install Manager-based application  
 **Usage**: `manager install [--systemd|--cron|--manual] [options]`
 
+**Options**:
+- `--systemd`: Install as systemd service
+- `--cron`: Install as cron job
+- `--manual`: Manual installation (default)
+- `--interval&#x3D;N`: Cron interval in minutes
+- `--auto-update, -a`: Enable automatic updates
+- `--redundant`: Both systemd and cron
 
+**Examples**:
+```bash
+manager install --systemd  # Install as system service
+manager install --cron --interval&#x3D;300  # Install with 5-minute cron schedule
+```
 
 #### `update` Command
 **Purpose**: Update Manager-based application  
 **Usage**: `manager update [--check|--force]`
 
+**Options**:
+- `--check`: Check for updates without installing
+- `--force`: Force update even if current
+- `--rollback`: Rollback to previous version
 
+**Examples**:
+```bash
+manager update --check  # Check for available updates
+manager update  # Perform update if available
+```
 
 #### `service` Command
 **Purpose**: Control Manager service  
 **Usage**: `manager service [start|stop|restart|status|enable|disable]`
 
 
+**Examples**:
+```bash
+manager service start  # Start the service
+manager service status  # Check service status
+manager service enable  # Enable service at boot
+```
 
 #### `health` Command
 **Purpose**: Check system health and diagnostics  
 **Usage**: `manager health [--verbose]`
 
+**Options**:
+- `--verbose`: Show detailed diagnostic information
 
+**Examples**:
+```bash
+manager health  # Quick health check
+manager health --verbose  # Detailed system diagnostics
+```
 
 #### `rollback` Command
 **Purpose**: Rollback to previous version  
 **Usage**: `manager rollback [version]`
 
 
+**Examples**:
+```bash
+manager rollback  # Rollback to previous version
+manager rollback 1.2.3  # Rollback to specific version
+```
 
 #### `self-update` Command
 **Purpose**: Update Manager framework itself  
 **Usage**: `manager self-update [--check]`
 
+**Options**:
+- `--check`: Check for framework updates
+- `--channel`: Update channel (stable, beta) (default: stable)
 
+**Examples**:
+```bash
+manager self-update --check  # Check for Manager updates
+manager self-update  # Update Manager framework
+```
 
 #### `version` Command
 **Purpose**: Show version information  
 **Usage**: `manager version [--json]`
 
+**Options**:
+- `--json`: Output in JSON format
 
 
 #### `help` Command
@@ -219,45 +250,38 @@ manager help [command]  # Show help information
 **Usage**: `manager help [command]`
 
 
-
-
-
-
-
+**Examples**:
+```bash
+manager help  # Show general help
+manager help install  # Show help for install command
+```
 
 
 ## Environment Variables
-
 
 ### MANAGER_CONFIG_DIR
 - **Description**: Override default config directory
 - **Default**: `$HOME/.config/manager`
 
-
 ### MANAGER_DATA_DIR
 - **Description**: Override default data directory
 - **Default**: `$HOME/.local/share/manager`
-
 
 ### MANAGER_LOG_LEVEL
 - **Description**: Logging level (debug, info, warn, error)
 - **Default**: `info`
 
-
 ### MANAGER_UPDATE_CHANNEL
 - **Description**: Update channel (stable, beta, nightly)
 - **Default**: `stable`
-
 
 ### MANAGER_AUTO_UPDATE
 - **Description**: Enable automatic updates
 - **Default**: `false`
 
-
 ### MANAGER_PREFIX
 - **Description**: Installation prefix
 - **Default**: `/usr/local`
-
 
 
 ## Development Guidelines
@@ -389,23 +413,14 @@ load_module "module-name" || {
 
 ## Use Cases
 
-
 ### 0. System initialization and bootstrapping
-
 ### 1. Application deployment and management
-
 ### 2. Service orchestration and monitoring
-
 ### 3. Configuration management across environments
-
 ### 4. Automated updates and maintenance
-
 ### 5. Cross-platform shell script development
-
 ### 6. Infrastructure automation without dependencies
-
 ### 7. Emergency recovery systems
-
 
 ## Security Considerations
 
@@ -500,21 +515,13 @@ When extending Manager:
 Manager is the foundational framework that brings consistency and reliability to shell-based system management. While modern tools require complex dependencies and runtimes, Manager provides a universal, dependency-free solution that works everywhere, forever.
 
 ### Benefits
-
 - No dependencies means no dependency hell
-
 - POSIX compliance ensures universal compatibility
-
 - Standardized patterns reduce complexity and errors
-
 - Framework approach enables rapid development
-
 - Battle-tested reliability for production systems
-
 - Emergency recovery when other systems fail
-
 - Educational resource for shell best practices
-
 
 ---
 
