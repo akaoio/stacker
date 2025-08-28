@@ -354,7 +354,8 @@ Commands:
   health                Check system health and diagnostics
   status                Show current status
   rollback, -r          Rollback to previous version
-  self-install          Install Manager globally for system-wide use
+  self-install          Install Manager globally as command-line tool
+  self-uninstall        Remove global Manager installation
   version, -v           Show version information
   help, -h              Show help information
 
@@ -448,6 +449,11 @@ manager_parse_cli() {
         self-install)
             shift
             manager_cli_self_install "$@"
+            exit $?
+            ;;
+        self-uninstall)
+            shift
+            manager_cli_self_uninstall "$@"
             exit $?
             ;;
         --self-update|--discover|--setup-auto-update|--remove-auto-update|--self-status|--register)
@@ -901,19 +907,19 @@ EOF
 }
 
 manager_cli_self_install() {
-    local install_dir="/usr/local/bin"
-    local use_sudo=true
-    local user_scope=false
+    local install_dir=""
+    local use_sudo=false
+    local force=false
+    local symlink=false
+    local verify_only=false
     
     while [ $# -gt 0 ]; do
         case "$1" in
             --user)
-                user_scope=true
                 install_dir="$HOME/.local/bin"
                 use_sudo=false
                 ;;
             --system)
-                user_scope=false
                 install_dir="/usr/local/bin"
                 use_sudo=true
                 ;;
@@ -921,26 +927,47 @@ manager_cli_self_install() {
                 install_dir="${1#*=}/bin"
                 use_sudo=false
                 ;;
+            --force|-f)
+                force=true
+                ;;
+            --symlink|-s)
+                symlink=true
+                ;;
+            --verify)
+                verify_only=true
+                ;;
             --help|-h)
                 cat << 'EOF'
 Usage: manager self-install [OPTIONS]
 
-Install Manager globally for system-wide use
+Install Manager globally as a command-line tool
 
 Options:
   --user                Install in user directory (~/.local/bin)
-  --system              Install system-wide (/usr/local/bin) [default]
+  --system              Install system-wide (/usr/local/bin)
   --prefix=PATH         Install to custom prefix (PATH/bin)
+  --force, -f           Force reinstall even if already installed
+  --symlink, -s         Create symlink instead of wrapper script
+  --verify              Verify installation only
   --help, -h            Show this help
 
-Examples:
-  manager self-install           # Install system-wide (may require sudo)
-  manager self-install --user    # Install for current user only
-  manager self-install --prefix=/opt/local  # Install to /opt/local/bin
+Installation Methods:
+  1. Auto-detect (default): Finds best location based on permissions
+  2. User install: Safe, no sudo, installs to ~/.local/bin
+  3. System install: Requires sudo, available to all users
+  4. Custom prefix: Install to specified directory
 
-After installation, you can use 'manager' command from anywhere:
-  manager init myproject
-  manager health
+Examples:
+  manager self-install                  # Auto-detect best location
+  manager self-install --user           # Install for current user
+  manager self-install --system         # Install system-wide
+  manager self-install --prefix=/opt    # Install to /opt/bin
+  manager self-install --verify         # Check if installed correctly
+
+After installation:
+  manager version                       # Verify installation
+  manager init myproject                # Initialize new project
+  manager help                          # Show available commands
 EOF
                 return 0
                 ;;
@@ -952,93 +979,415 @@ EOF
         shift
     done
     
-    # Create install directory if it doesn't exist
-    if [ "$user_scope" = true ] && [ ! -d "$install_dir" ]; then
-        echo "Creating user bin directory: $install_dir"
-        mkdir -p "$install_dir" || {
-            manager_error "Failed to create directory: $install_dir"
-            return 1
-        }
+    # Auto-detect installation directory if not specified
+    if [ -z "$install_dir" ]; then
+        # Check common directories in order of preference
+        for dir in "$HOME/.local/bin" "/usr/local/bin" "/usr/bin" "/opt/bin"; do
+            if [ -w "$dir" ] || ([ "$dir" = "/usr/local/bin" ] || [ "$dir" = "/usr/bin" ]) && command -v sudo >/dev/null 2>&1; then
+                install_dir="$dir"
+                [ "$dir" = "/usr/local/bin" ] || [ "$dir" = "/usr/bin" ] && use_sudo=true
+                break
+            fi
+        done
+        
+        if [ -z "$install_dir" ]; then
+            # Fallback to user directory
+            install_dir="$HOME/.local/bin"
+            echo "Auto-detected installation directory: $install_dir"
+        fi
     fi
     
-    # Check if install directory is writable
-    if [ ! -w "$install_dir" ] && [ "$use_sudo" = false ]; then
-        manager_error "Cannot write to $install_dir. Try with --user or use sudo."
+    # Verify mode - check existing installation
+    if [ "$verify_only" = true ]; then
+        echo "Verifying Manager installation..."
+        
+        # Check if manager command exists
+        if command -v manager >/dev/null 2>&1; then
+            local installed_path="$(command -v manager)"
+            echo "✓ Manager found at: $installed_path"
+            
+            # Check if it's our installation
+            if grep -q "MANAGER_DIR=" "$installed_path" 2>/dev/null; then
+                local installed_dir="$(grep "MANAGER_DIR=" "$installed_path" | cut -d'"' -f2)"
+                echo "✓ Manager directory: $installed_dir"
+                
+                # Verify it works
+                if manager --version >/dev/null 2>&1; then
+                    echo "✓ Manager is functional"
+                    manager --version
+                    return 0
+                else
+                    echo "✗ Manager command exists but is not functional"
+                    return 1
+                fi
+            else
+                echo "✗ Found different 'manager' command (not Manager Framework)"
+                return 1
+            fi
+        else
+            echo "✗ Manager not found in PATH"
+            echo ""
+            echo "To install, run: $0 self-install"
+            return 1
+        fi
+    fi
+    
+    # Check for existing installation
+    if [ -f "$install_dir/manager" ] && [ "$force" != true ]; then
+        echo "Manager is already installed at: $install_dir/manager"
+        echo ""
+        
+        # Check if it's our installation
+        if grep -q "MANAGER_DIR=" "$install_dir/manager" 2>/dev/null; then
+            local installed_dir="$(grep "MANAGER_DIR=" "$install_dir/manager" | cut -d'"' -f2)"
+            echo "Current installation points to: $installed_dir"
+            
+            local abs_manager_dir="$(cd "$MANAGER_DIR" 2>/dev/null && pwd)"
+            if [ "$installed_dir" != "$abs_manager_dir" ]; then
+                echo "This directory: $abs_manager_dir"
+                echo ""
+                echo "Use --force to update the installation"
+            else
+                echo "Already using this Manager instance"
+            fi
+        else
+            echo "WARNING: Found different 'manager' command at this location"
+            echo "Use --force to replace it with Manager Framework"
+        fi
         return 1
     fi
     
-    # Get absolute path of Manager directory
-    local abs_manager_dir="$(cd "$MANAGER_DIR" && pwd)"
+    # Create install directory if needed
+    if [ ! -d "$install_dir" ]; then
+        echo "Creating directory: $install_dir"
+        if [ "$use_sudo" = true ]; then
+            sudo mkdir -p "$install_dir" || {
+                manager_error "Failed to create directory: $install_dir"
+                return 1
+            }
+        else
+            mkdir -p "$install_dir" || {
+                manager_error "Failed to create directory: $install_dir"
+                return 1
+            }
+        fi
+    fi
     
-    echo "Installing Manager Framework globally..."
+    # Check write permissions
+    if [ ! -w "$install_dir" ] && [ "$use_sudo" = false ]; then
+        manager_error "Cannot write to $install_dir. Try with --system or use sudo."
+        return 1
+    fi
+    
+    # Get absolute paths
+    local abs_manager_dir="$(cd "$MANAGER_DIR" 2>/dev/null && pwd)"
+    if [ -z "$abs_manager_dir" ]; then
+        manager_error "Failed to determine Manager directory path"
+        return 1
+    fi
+    
+    local abs_manager_script="$abs_manager_dir/manager.sh"
+    if [ ! -f "$abs_manager_script" ]; then
+        manager_error "Manager script not found: $abs_manager_script"
+        return 1
+    fi
+    
+    echo "Installing Manager Framework..."
     echo "  Source: $abs_manager_dir"
     echo "  Target: $install_dir/manager"
-    [ "$use_sudo" = true ] && echo "  Note: May require sudo password"
+    echo "  Method: $([ "$symlink" = true ] && echo "symlink" || echo "wrapper script")"
+    [ "$use_sudo" = true ] && echo "  Permission: sudo required"
+    echo ""
     
-    # Create wrapper script
-    local wrapper_content="#!/bin/sh
+    # Create installation (symlink or wrapper)
+    if [ "$symlink" = true ]; then
+        # Create symlink
+        if [ "$use_sudo" = true ]; then
+            sudo ln -sf "$abs_manager_script" "$install_dir/manager" || {
+                manager_error "Failed to create symlink"
+                return 1
+            }
+        else
+            ln -sf "$abs_manager_script" "$install_dir/manager" || {
+                manager_error "Failed to create symlink"
+                return 1
+            }
+        fi
+    else
+        # Create wrapper script with enhanced features
+        local wrapper_content="#!/bin/sh
 # Manager Framework Global Wrapper
-# Auto-generated by manager self-install
+# Version: 2.0.0
+# Generated: $(date '+%Y-%m-%d %H:%M:%S')
+# Source: $abs_manager_dir
+
+# Verify Manager directory still exists
+if [ ! -d \"$abs_manager_dir\" ]; then
+    echo \"ERROR: Manager directory not found: $abs_manager_dir\" >&2
+    echo \"Please reinstall Manager Framework\" >&2
+    exit 1
+fi
+
+# Verify Manager script exists
+if [ ! -f \"$abs_manager_script\" ]; then
+    echo \"ERROR: Manager script not found: $abs_manager_script\" >&2
+    echo \"Please reinstall Manager Framework\" >&2
+    exit 1
+fi
+
+# Set Manager directory and execute
 export MANAGER_DIR=\"$abs_manager_dir\"
 exec \"\$MANAGER_DIR/manager.sh\" \"\$@\"
 "
-    
-    # Write wrapper to temp file first
-    local temp_wrapper="/tmp/manager-wrapper-$$"
-    echo "$wrapper_content" > "$temp_wrapper" || {
-        manager_error "Failed to create wrapper script"
-        return 1
-    }
-    chmod +x "$temp_wrapper"
-    
-    # Install the wrapper
-    if [ "$use_sudo" = true ]; then
-        echo "Installing to system directory (requires sudo)..."
-        sudo cp "$temp_wrapper" "$install_dir/manager" || {
+        
+        # Write wrapper to temp file with atomic install
+        local temp_wrapper="$(mktemp /tmp/manager-wrapper.XXXXXX)"
+        echo "$wrapper_content" > "$temp_wrapper" || {
             rm -f "$temp_wrapper"
-            manager_error "Failed to install manager (sudo required)"
+            manager_error "Failed to create wrapper script"
             return 1
         }
-        sudo chmod 755 "$install_dir/manager"
-    else
-        cp "$temp_wrapper" "$install_dir/manager" || {
-            rm -f "$temp_wrapper"
-            manager_error "Failed to install manager"
-            return 1
-        }
-        chmod 755 "$install_dir/manager"
+        chmod 755 "$temp_wrapper"
+        
+        # Install atomically
+        if [ "$use_sudo" = true ]; then
+            sudo mv -f "$temp_wrapper" "$install_dir/manager" || {
+                rm -f "$temp_wrapper"
+                manager_error "Failed to install manager"
+                return 1
+            }
+        else
+            mv -f "$temp_wrapper" "$install_dir/manager" || {
+                rm -f "$temp_wrapper"
+                manager_error "Failed to install manager"
+                return 1
+            }
+        fi
     fi
-    
-    rm -f "$temp_wrapper"
     
     # Verify installation
-    if [ -x "$install_dir/manager" ]; then
-        echo ""
-        echo "✓ Manager Framework installed successfully!"
-        echo ""
-        echo "Installation complete. You can now use 'manager' from anywhere:"
-        echo "  manager --version"
-        echo "  manager --help"
-        echo "  manager init myproject"
-        
-        if [ "$user_scope" = true ]; then
-            # Check if user bin is in PATH
-            case ":$PATH:" in
-                *":$install_dir:"*)
-                    # Already in PATH
-                    ;;
-                *)
-                    echo ""
-                    echo "NOTE: Add $install_dir to your PATH:"
-                    echo "  export PATH=\"\$PATH:$install_dir\""
-                    echo "  (Add this to your ~/.bashrc or ~/.profile)"
-                    ;;
-            esac
-        fi
-    else
-        manager_error "Installation verification failed"
+    if [ ! -x "$install_dir/manager" ]; then
+        manager_error "Installation failed - manager not executable"
         return 1
     fi
+    
+    # Test the installation
+    if ! "$install_dir/manager" --version >/dev/null 2>&1; then
+        manager_error "Installation test failed - manager not working"
+        return 1
+    fi
+    
+    # Check PATH and provide guidance
+    local in_path=false
+    case ":$PATH:" in
+        *":$install_dir:"*)
+            in_path=true
+            ;;
+    esac
+    
+    echo "╔════════════════════════════════════════════════════════════════╗"
+    echo "║             Manager Framework Installed Successfully!          ║"
+    echo "╚════════════════════════════════════════════════════════════════╝"
+    echo ""
+    echo "Installation Details:"
+    echo "  • Location: $install_dir/manager"
+    echo "  • Version: $(MANAGER_DIR="$abs_manager_dir" "$install_dir/manager" --version 2>/dev/null || echo "2.0.0")"
+    echo "  • Type: $([ "$symlink" = true ] && echo "Symlink" || echo "Wrapper Script")"
+    echo ""
+    
+    if [ "$in_path" = true ]; then
+        echo "✓ Directory $install_dir is in your PATH"
+        echo ""
+        echo "You can now use 'manager' from anywhere:"
+    else
+        echo "⚠ Directory $install_dir is NOT in your PATH"
+        echo ""
+        echo "To use 'manager' from anywhere, add to PATH:"
+        echo ""
+        echo "  # Add to ~/.bashrc or ~/.zshrc:"
+        echo "  export PATH=\"\$PATH:$install_dir\""
+        echo ""
+        echo "Or source it now for this session:"
+        echo "  export PATH=\"\$PATH:$install_dir\""
+        echo ""
+        echo "Then you can use:"
+    fi
+    
+    echo "  manager version        # Show version"
+    echo "  manager help           # Show commands"
+    echo "  manager init           # Initialize project"
+    echo "  manager self-uninstall # Remove installation"
+    echo ""
+    
+    return 0
+}
+
+manager_cli_self_uninstall() {
+    local force=false
+    local all=false
+    
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --force|-f)
+                force=true
+                ;;
+            --all|-a)
+                all=true
+                ;;
+            --help|-h)
+                cat << 'EOF'
+Usage: manager self-uninstall [OPTIONS]
+
+Remove Manager Framework global installation
+
+Options:
+  --force, -f           Skip confirmation prompt
+  --all, -a             Remove from all found locations
+  --help, -h            Show this help
+
+Description:
+  Removes the globally installed 'manager' command from system.
+  By default, removes only from PATH locations.
+  Use --all to remove from all common installation directories.
+
+Examples:
+  manager self-uninstall           # Interactive uninstall
+  manager self-uninstall --force   # Uninstall without confirmation
+  manager self-uninstall --all     # Remove all installations
+
+Note:
+  This only removes the global command. The Manager Framework
+  source directory remains intact and can be reinstalled anytime.
+EOF
+                return 0
+                ;;
+            *)
+                manager_error "Unknown self-uninstall option: $1"
+                return 1
+                ;;
+        esac
+        shift
+    done
+    
+    echo "Searching for Manager installations..."
+    echo ""
+    
+    # Find all manager installations
+    local found_installations=""
+    local found_count=0
+    
+    # Check PATH locations
+    local IFS=':'
+    for dir in $PATH; do
+        if [ -f "$dir/manager" ] && [ -x "$dir/manager" ]; then
+            # Check if it's our Manager Framework
+            if grep -q "Manager Framework" "$dir/manager" 2>/dev/null || \
+               grep -q "MANAGER_DIR=" "$dir/manager" 2>/dev/null; then
+                # Avoid duplicates
+                if ! echo "$found_installations" | grep -q "^$dir/manager$"; then
+                    found_installations="$found_installations$dir/manager\n"
+                    found_count=$((found_count + 1))
+                    echo "  Found: $dir/manager"
+                fi
+            fi
+        fi
+    done
+    
+    # Check common locations if --all specified
+    if [ "$all" = true ]; then
+        for dir in /usr/local/bin /usr/bin /opt/bin "$HOME/.local/bin" "$HOME/bin"; do
+            if [ -f "$dir/manager" ] && [ -x "$dir/manager" ]; then
+                # Check if not already found and it's our Manager
+                if ! echo "$found_installations" | grep -q "$dir/manager" && \
+                   (grep -q "Manager Framework" "$dir/manager" 2>/dev/null || \
+                    grep -q "MANAGER_DIR=" "$dir/manager" 2>/dev/null); then
+                    found_installations="$found_installations$dir/manager\n"
+                    found_count=$((found_count + 1))
+                    echo "  Found: $dir/manager (not in PATH)"
+                fi
+            fi
+        done
+    fi
+    
+    # Check if any installations found
+    if [ $found_count -eq 0 ]; then
+        echo ""
+        echo "No Manager Framework installations found."
+        echo ""
+        echo "Note: Only checking for Manager Framework installations,"
+        echo "not other programs that might be named 'manager'."
+        return 0
+    fi
+    
+    echo ""
+    echo "Found $found_count Manager installation(s)"
+    echo ""
+    
+    # Confirm uninstallation
+    if [ "$force" != true ]; then
+        echo "This will remove the following:"
+        printf "$found_installations" | while IFS= read -r file; do
+            [ -n "$file" ] && echo "  - $file"
+        done
+        echo ""
+        printf "Are you sure you want to uninstall? (yes/no): "
+        read -r confirmation
+        
+        case "$confirmation" in
+            yes|Yes|YES|y|Y)
+                echo ""
+                ;;
+            *)
+                echo "Uninstallation cancelled."
+                return 0
+                ;;
+        esac
+    fi
+    
+    # Perform uninstallation
+    local removed_count=0
+    local failed_count=0
+    
+    printf "$found_installations" | while IFS= read -r file; do
+        if [ -n "$file" ] && [ -f "$file" ]; then
+            echo "Removing: $file"
+            
+            # Check if we need sudo
+            if [ -w "$file" ]; then
+                rm -f "$file" && {
+                    echo "  ✓ Removed successfully"
+                    removed_count=$((removed_count + 1))
+                } || {
+                    echo "  ✗ Failed to remove"
+                    failed_count=$((failed_count + 1))
+                }
+            else
+                # Try with sudo
+                echo "  (requires sudo)"
+                sudo rm -f "$file" && {
+                    echo "  ✓ Removed successfully"
+                    removed_count=$((removed_count + 1))
+                } || {
+                    echo "  ✗ Failed to remove"
+                    failed_count=$((failed_count + 1))
+                }
+            fi
+        fi
+    done
+    
+    echo ""
+    echo "╔════════════════════════════════════════════════════════════════╗"
+    echo "║              Manager Framework Uninstalled                     ║"
+    echo "╚════════════════════════════════════════════════════════════════╝"
+    echo ""
+    echo "The Manager Framework has been removed from global installation."
+    echo ""
+    echo "Note: The source directory remains at:"
+    echo "  $(cd "$MANAGER_DIR" 2>/dev/null && pwd)"
+    echo ""
+    echo "You can reinstall anytime by running:"
+    echo "  $MANAGER_DIR/manager.sh self-install"
+    echo ""
     
     return 0
 }
