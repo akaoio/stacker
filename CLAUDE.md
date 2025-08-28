@@ -1,16 +1,16 @@
-# CLAUDE.md - @akaoio/manager
+# CLAUDE.md - @akaoio/stacker
 
-This file provides guidance to Claude Code (claude.ai/code) when working with the @akaoio/manager codebase.
+This file provides guidance to Claude Code (claude.ai/code) when working with the @akaoio/stacker codebase.
 
 ## Project Overview
 
-**@akaoio/manager** - Universal POSIX shell framework for system management - The foundational framework that standardizes patterns across all technologies with modular architecture
+**@akaoio/stacker** - Universal POSIX shell framework for system management - The foundational framework that standardizes patterns across all technologies with modular architecture
 
 **Version**: 2.0.0  
 **License**: MIT  
 **Author**: AKAO.IO  
-**Repository**: https://github.com/akaoio/manager  
-**Philosophy**: "Manager brings order to chaos - a universal shell framework with modular loading that works everywhere, forever."
+**Repository**: https://github.com/akaoio/stacker  
+**Philosophy**: "Stacker brings order to chaos - a universal shell framework with modular loading that works everywhere, forever."
 
 ## Core Development Principles
 
@@ -23,11 +23,11 @@ Establishes universal patterns for shell-based system management across all envi
 **Critical**: true
 
 ### Zero Dependencies
-No external dependencies, no runtimes, no package managers - just pure shell
+No external dependencies, no runtimes, no package stackers - just pure shell
 **Critical**: true
 
 ### Eternal Infrastructure
-Built to last forever - when languages come and go, Manager remains
+Built to last forever - when languages come and go, Stacker remains
 **Critical**: true
 
 
@@ -35,27 +35,27 @@ Built to last forever - when languages come and go, Manager remains
 
 ### System Design
 
-Manager is a comprehensive shell framework that provides standardized patterns for system management, configuration, installation, updates, and service orchestration. Version 2.0.0 features a complete CLI interface with interactive commands and comprehensive help system.
+Stacker is a comprehensive shell framework that provides standardized patterns for system management, configuration, installation, updates, and service orchestration. Version 2.0.0 features a complete CLI interface with interactive commands and comprehensive help system.
 
 ### Core Components
 
-**Core Module (manager-core.sh)**
+**Core Module (stacker-core.sh)**
 - Central framework providing common functions, error handling, logging, and state management
-- Responsibility: Foundation layer for all Manager operations
+- Responsibility: Foundation layer for all Stacker operations
 
-**Configuration Module (manager-config.sh)**
+**Configuration Module (stacker-config.sh)**
 - XDG-compliant configuration management with JSON support and environment variable overrides
 - Responsibility: Centralized configuration handling across all modules
 
-**Installation Module (manager-install.sh)**
+**Installation Module (stacker-install.sh)**
 - Universal installation framework supporting systemd, cron, and manual deployment
 - Responsibility: Standardized installation across different environments
 
-**Update Module (manager-update.sh)**
+**Update Module (stacker-update.sh)**
 - Intelligent update system with version management and rollback capabilities
 - Responsibility: Safe and reliable system updates
 
-**Service Module (manager-service.sh)**
+**Service Module (stacker-service.sh)**
 - Service lifecycle management for systemd, init.d, and standalone daemons
 - Responsibility: Unified service control interface
 
@@ -63,7 +63,7 @@ Manager is a comprehensive shell framework that provides standardized patterns f
 - Complete command-line interface with interactive commands, argument parsing, and comprehensive help system
 - Responsibility: Direct CLI execution, user interaction, and command processing with full subcommand support
 
-**Self-Update Module (manager-self-update.sh)**
+**Self-Update Module (stacker-self-update.sh)**
 - Auto-update capability with integrity verification and atomic updates
 - Responsibility: Framework self-maintenance
 
@@ -112,24 +112,24 @@ Built-in health checks and diagnostic capabilities
 ### Core Commands
 
 ```bash
-manager init [OPTIONS]  # Initialize Manager framework in current directory
-manager config [get|set|list] [key] [value]  # Manage configuration settings
-manager install [--systemd|--cron|--manual] [options]  # Install Manager-based application
-manager update [--check|--force]  # Update Manager-based application
-manager service [start|stop|restart|status|enable|disable]  # Control Manager service
-manager health [--verbose]  # Check system health and diagnostics
-manager status  # Show current status of Manager-based application
-manager rollback [version]  # Rollback to previous version
-manager self-update [--check]  # Update Manager framework itself
-manager version [--json]  # Show version information
-manager help [command]  # Show help information
+stacker init [OPTIONS]  # Initialize Stacker framework in current directory
+stacker config [get|set|list] [key] [value]  # Manage configuration settings
+stacker install [--systemd|--cron|--manual] [options]  # Install Stacker-based application
+stacker update [--check|--force]  # Update Stacker-based application
+stacker service [start|stop|restart|status|enable|disable]  # Control Stacker service
+stacker health [--verbose]  # Check system health and diagnostics
+stacker status  # Show current status of Stacker-based application
+stacker rollback [version]  # Rollback to previous version
+stacker self-update [--check]  # Update Stacker framework itself
+stacker version [--json]  # Show version information
+stacker help [command]  # Show help information
 ```
 
 ### Detailed Command Reference
 
 #### `init, -i` Command
-**Purpose**: Initialize Manager framework in current directory  
-**Usage**: `manager init [OPTIONS]`
+**Purpose**: Initialize Stacker framework in current directory  
+**Usage**: `stacker init [OPTIONS]`
 
 **Options**:
 - `--template, -t`: Project template (service, cli, library) (default: service)
@@ -139,25 +139,25 @@ manager help [command]  # Show help information
 
 **Examples**:
 ```bash
-manager init  # Initialize with interactive prompts
-manager init --template&#x3D;cli --name&#x3D;mytool  # Initialize CLI application template
+stacker init  # Initialize with interactive prompts
+stacker init --template&#x3D;cli --name&#x3D;mytool  # Initialize CLI application template
 ```
 
 #### `config, -c` Command
 **Purpose**: Manage configuration settings  
-**Usage**: `manager config [get|set|list] [key] [value]`
+**Usage**: `stacker config [get|set|list] [key] [value]`
 
 
 **Examples**:
 ```bash
-manager config list  # List all configuration settings
-manager config get update.interval  # Get specific configuration value
-manager config set update.interval 3600  # Set configuration value
+stacker config list  # List all configuration settings
+stacker config get update.interval  # Get specific configuration value
+stacker config set update.interval 3600  # Set configuration value
 ```
 
 #### `install` Command
-**Purpose**: Install Manager-based application  
-**Usage**: `manager install [--systemd|--cron|--manual] [options]`
+**Purpose**: Install Stacker-based application  
+**Usage**: `stacker install [--systemd|--cron|--manual] [options]`
 
 **Options**:
 - `--systemd`: Install as systemd service
@@ -169,13 +169,13 @@ manager config set update.interval 3600  # Set configuration value
 
 **Examples**:
 ```bash
-manager install --systemd  # Install as system service
-manager install --cron --interval&#x3D;300  # Install with 5-minute cron schedule
+stacker install --systemd  # Install as system service
+stacker install --cron --interval&#x3D;300  # Install with 5-minute cron schedule
 ```
 
 #### `update, -u` Command
-**Purpose**: Update Manager-based application  
-**Usage**: `manager update [--check|--force]`
+**Purpose**: Update Stacker-based application  
+**Usage**: `stacker update [--check|--force]`
 
 **Options**:
 - `--check`: Check for updates without installing
@@ -184,59 +184,59 @@ manager install --cron --interval&#x3D;300  # Install with 5-minute cron schedul
 
 **Examples**:
 ```bash
-manager update --check  # Check for available updates
-manager update  # Perform update if available
+stacker update --check  # Check for available updates
+stacker update  # Perform update if available
 ```
 
 #### `service, -s` Command
-**Purpose**: Control Manager service  
-**Usage**: `manager service [start|stop|restart|status|enable|disable]`
+**Purpose**: Control Stacker service  
+**Usage**: `stacker service [start|stop|restart|status|enable|disable]`
 
 
 **Examples**:
 ```bash
-manager service start  # Start the service
-manager service status  # Check service status
-manager service enable  # Enable service at boot
+stacker service start  # Start the service
+stacker service status  # Check service status
+stacker service enable  # Enable service at boot
 ```
 
 #### `health` Command
 **Purpose**: Check system health and diagnostics  
-**Usage**: `manager health [--verbose]`
+**Usage**: `stacker health [--verbose]`
 
 **Options**:
 - `--verbose`: Show detailed diagnostic information
 
 **Examples**:
 ```bash
-manager health  # Quick health check
-manager health --verbose  # Detailed system diagnostics
+stacker health  # Quick health check
+stacker health --verbose  # Detailed system diagnostics
 ```
 
 #### `status` Command
-**Purpose**: Show current status of Manager-based application  
-**Usage**: `manager status`
+**Purpose**: Show current status of Stacker-based application  
+**Usage**: `stacker status`
 
 
 **Examples**:
 ```bash
-manager status  # Display installation and service status
+stacker status  # Display installation and service status
 ```
 
 #### `rollback, -r` Command
 **Purpose**: Rollback to previous version  
-**Usage**: `manager rollback [version]`
+**Usage**: `stacker rollback [version]`
 
 
 **Examples**:
 ```bash
-manager rollback  # Rollback to previous version
-manager rollback 1.2.3  # Rollback to specific version
+stacker rollback  # Rollback to previous version
+stacker rollback 1.2.3  # Rollback to specific version
 ```
 
 #### `self-update` Command
-**Purpose**: Update Manager framework itself  
-**Usage**: `manager self-update [--check]`
+**Purpose**: Update Stacker framework itself  
+**Usage**: `stacker self-update [--check]`
 
 **Options**:
 - `--check`: Check for framework updates
@@ -244,13 +244,13 @@ manager rollback 1.2.3  # Rollback to specific version
 
 **Examples**:
 ```bash
-manager self-update --check  # Check for Manager updates
-manager self-update  # Update Manager framework
+stacker self-update --check  # Check for Stacker updates
+stacker self-update  # Update Stacker framework
 ```
 
 #### `version, -v` Command
 **Purpose**: Show version information  
-**Usage**: `manager version [--json]`
+**Usage**: `stacker version [--json]`
 
 **Options**:
 - `--json`: Output in JSON format
@@ -258,39 +258,39 @@ manager self-update  # Update Manager framework
 
 #### `help, -h` Command
 **Purpose**: Show help information  
-**Usage**: `manager help [command]`
+**Usage**: `stacker help [command]`
 
 
 **Examples**:
 ```bash
-manager help  # Show general help
-manager help install  # Show help for install command
+stacker help  # Show general help
+stacker help install  # Show help for install command
 ```
 
 
 ## Environment Variables
 
-### MANAGER_CONFIG_DIR
+### STACKER_CONFIG_DIR
 - **Description**: Override default config directory
-- **Default**: `$HOME/.config/manager`
+- **Default**: `$HOME/.config/stacker`
 
-### MANAGER_DATA_DIR
+### STACKER_DATA_DIR
 - **Description**: Override default data directory
-- **Default**: `$HOME/.local/share/manager`
+- **Default**: `$HOME/.local/share/stacker`
 
-### MANAGER_LOG_LEVEL
+### STACKER_LOG_LEVEL
 - **Description**: Logging level (debug, info, warn, error)
 - **Default**: `info`
 
-### MANAGER_UPDATE_CHANNEL
+### STACKER_UPDATE_CHANNEL
 - **Description**: Update channel (stable, beta, nightly)
 - **Default**: `stable`
 
-### MANAGER_AUTO_UPDATE
+### STACKER_AUTO_UPDATE
 - **Description**: Enable automatic updates
 - **Default**: `false`
 
-### MANAGER_PREFIX
+### STACKER_PREFIX
 - **Description**: Installation prefix
 - **Default**: `/usr/local`
 
@@ -318,11 +318,11 @@ manager help install  # Show help for install command
 ### Code Organization
 
 ```
-manager.sh              # Main entry point
+stacker.sh              # Main entry point
 ├── Core Functions
-│   ├── manager_init()      # Framework initialization
-│   ├── manager_config()    # Configuration management
-│   └── manager_error()     # Error handling
+│   ├── stacker_init()      # Framework initialization
+│   ├── stacker_config()    # Configuration management
+│   └── stacker_error()     # Error handling
 ├── Module Loading
 │   ├── load_module()       # Dynamic module loading
 │   └── verify_module()     # Module verification
@@ -358,8 +358,8 @@ module_cleanup() {
 }
 
 # Export module interface
-MANAGER_MODULE_NAME="module-name"
-MANAGER_MODULE_VERSION="1.0.0"
+STACKER_MODULE_NAME="module-name"
+STACKER_MODULE_VERSION="1.0.0"
 ```
 
 ### Testing Requirements
@@ -454,10 +454,10 @@ load_module "module-name" || {
 **Module Loading Failures**
 ```bash
 # Debug module loading
-MANAGER_DEBUG=true manager init
+STACKER_DEBUG=true stacker init
 
 # Check module path
-echo $MANAGER_MODULE_PATH
+echo $STACKER_MODULE_PATH
 
 # Verify module syntax
 sh -n module-name.sh
@@ -466,31 +466,31 @@ sh -n module-name.sh
 **Configuration Issues**
 ```bash
 # Check configuration
-manager config list
+stacker config list
 
 # Validate configuration file
-manager config validate
+stacker config validate
 
 # Reset configuration
-rm -rf ~/.config/manager
-manager init
+rm -rf ~/.config/stacker
+stacker init
 ```
 
 **Service Issues**
 ```bash
 # Check service status
-manager service status
+stacker service status
 
 # View service logs
-journalctl -u manager -f
+journalctl -u stacker -f
 
 # Restart service
-manager service restart
+stacker service restart
 ```
 
 ## Notes for AI Assistants
 
-When working with Manager:
+When working with Stacker:
 
 ### Critical Guidelines
 - **ALWAYS maintain POSIX compliance** - test with `/bin/sh`
@@ -514,16 +514,16 @@ When working with Manager:
 - Not testing on minimal systems
 
 ### Framework Extensions
-When extending Manager:
+When extending Stacker:
 1. Create new module following the pattern
 2. Add module to the module registry
 3. Update configuration schema if needed
 4. Add tests for new functionality
 5. Document in module header
 
-## Why Manager Matters
+## Why Stacker Matters
 
-Manager is the foundational framework that brings consistency and reliability to shell-based system management. While modern tools require complex dependencies and runtimes, Manager provides a universal, dependency-free solution that works everywhere, forever.
+Stacker is the foundational framework that brings consistency and reliability to shell-based system management. While modern tools require complex dependencies and runtimes, Stacker provides a universal, dependency-free solution that works everywhere, forever.
 
 ### Benefits
 - No dependencies means no dependency hell
@@ -536,6 +536,6 @@ Manager is the foundational framework that brings consistency and reliability to
 
 ---
 
-*Manager is the foundation - bringing order to chaos through universal shell patterns.*
+*Stacker is the foundation - bringing order to chaos through universal shell patterns.*
 
 *Version: 2.0.0 | License: MIT | Author: AKAO.IO*

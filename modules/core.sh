@@ -1,69 +1,69 @@
 #!/bin/sh
 # Module: core
-# Description: Core utilities and logging functions for Manager framework
+# Description: Core utilities and logging functions for Stacker framework
 # Dependencies: none
 # Provides: logging, OS detection, validation, XDG directories, privilege handling
 
 # Module metadata
-MANAGER_MODULE_NAME="core"
-MANAGER_MODULE_VERSION="1.0.0"
-MANAGER_MODULE_DEPENDENCIES=""
-MANAGER_MODULE_LOADED=false
+STACKER_MODULE_NAME="core"
+STACKER_MODULE_VERSION="1.0.0"
+STACKER_MODULE_DEPENDENCIES=""
+STACKER_MODULE_LOADED=false
 
 # XDG Base Directory Specification compliance
-MANAGER_XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
-MANAGER_XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}" 
-MANAGER_XDG_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
-MANAGER_XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
+STACKER_XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+STACKER_XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}" 
+STACKER_XDG_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
+STACKER_XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
 
-# Manager framework XDG directories
-MANAGER_CONFIG_DIR="$MANAGER_XDG_CONFIG_HOME/manager"
-MANAGER_DATA_DIR="$MANAGER_XDG_DATA_HOME/manager"
-MANAGER_STATE_DIR="$MANAGER_XDG_STATE_HOME/manager"
-MANAGER_CACHE_DIR="$MANAGER_XDG_CACHE_HOME/manager"
+# Stacker framework XDG directories
+STACKER_CONFIG_DIR="$STACKER_XDG_CONFIG_HOME/stacker"
+STACKER_DATA_DIR="$STACKER_XDG_DATA_HOME/stacker"
+STACKER_STATE_DIR="$STACKER_XDG_STATE_HOME/stacker"
+STACKER_CACHE_DIR="$STACKER_XDG_CACHE_HOME/stacker"
 
 # Colors for output (POSIX compliant terminal detection)
 # Check for NO_COLOR environment variable first (https://no-color.org/)
 if [ "${NO_COLOR:-0}" = "1" ] || [ "${FORCE_COLOR:-0}" = "0" ]; then
-    MANAGER_RED=''
-    MANAGER_GREEN=''
-    MANAGER_YELLOW=''
-    MANAGER_BLUE=''
-    MANAGER_NC=''
+    STACKER_RED=''
+    STACKER_GREEN=''
+    STACKER_YELLOW=''
+    STACKER_BLUE=''
+    STACKER_NC=''
 elif [ "${FORCE_COLOR:-0}" = "1" ] || { [ -t 1 ] && [ "${TERM:-dumb}" != "dumb" ]; }; then
     # Use colors if forced or if stdout is a terminal and TERM is not dumb
-    MANAGER_RED='\033[0;31m'
-    MANAGER_GREEN='\033[0;32m' 
-    MANAGER_YELLOW='\033[1;33m'
-    MANAGER_BLUE='\033[0;34m'
-    MANAGER_NC='\033[0m'
+    STACKER_RED='\033[0;31m'
+    STACKER_GREEN='\033[0;32m' 
+    STACKER_YELLOW='\033[1;33m'
+    STACKER_BLUE='\033[0;34m'
+    STACKER_NC='\033[0m'
 else
-    MANAGER_RED=''
-    MANAGER_GREEN=''
-    MANAGER_YELLOW=''
-    MANAGER_BLUE=''
-    MANAGER_NC=''
+    STACKER_RED=''
+    STACKER_GREEN=''
+    STACKER_YELLOW=''
+    STACKER_BLUE=''
+    STACKER_NC=''
 fi
 
 # Module initialization
 core_init() {
-    MANAGER_MODULE_LOADED=true
-    manager_debug "Core module initialized"
+    STACKER_MODULE_LOADED=true
+    stacker_debug "Core module initialized"
     return 0
 }
 
 # Logging functions with XDG-compliant log file
-manager_get_log_file() {
-    if [ -n "$MANAGER_TECH_NAME" ]; then
-        echo "$MANAGER_XDG_DATA_HOME/$MANAGER_TECH_NAME/manager.log"
+stacker_get_log_file() {
+    if [ -n "$STACKER_TECH_NAME" ]; then
+        echo "$STACKER_XDG_DATA_HOME/$STACKER_TECH_NAME/stacker.log"
     else
-        echo "$MANAGER_DATA_DIR/manager.log"
+        echo "$STACKER_DATA_DIR/stacker.log"
     fi
 }
 
-manager_log_to_file() {
+stacker_log_to_file() {
     local log_file
-    log_file=$(manager_get_log_file)
+    log_file=$(stacker_get_log_file)
     
     # Ensure log directory exists
     mkdir -p "$(dirname "$log_file")" 2>/dev/null || true
@@ -72,62 +72,62 @@ manager_log_to_file() {
     printf "[%s] %s\n" "$(date '+%Y-%m-%d %H:%M:%S')" "$*" >> "$log_file" 2>/dev/null || true
 }
 
-manager_log() {
+stacker_log() {
     # Use echo -e if available and colors are set, otherwise printf
-    if [ -n "$MANAGER_GREEN" ] && echo -e test >/dev/null 2>&1; then
-        echo -e "${MANAGER_GREEN}[Manager]${MANAGER_NC} $*"
+    if [ -n "$STACKER_GREEN" ] && echo -e test >/dev/null 2>&1; then
+        echo -e "${STACKER_GREEN}[Stacker]${STACKER_NC} $*"
     else
-        printf "%s[Manager]%s %s\n" "$MANAGER_GREEN" "$MANAGER_NC" "$*"
+        printf "%s[Stacker]%s %s\n" "$STACKER_GREEN" "$STACKER_NC" "$*"
     fi
-    manager_log_to_file "LOG: $*"
+    stacker_log_to_file "LOG: $*"
 }
 
-manager_info() {
-    if [ -n "$MANAGER_BLUE" ] && echo -e test >/dev/null 2>&1; then
-        echo -e "${MANAGER_BLUE}[Info]${MANAGER_NC} $*"
+stacker_info() {
+    if [ -n "$STACKER_BLUE" ] && echo -e test >/dev/null 2>&1; then
+        echo -e "${STACKER_BLUE}[Info]${STACKER_NC} $*"
     else
-        printf "%s[Info]%s %s\n" "$MANAGER_BLUE" "$MANAGER_NC" "$*"
+        printf "%s[Info]%s %s\n" "$STACKER_BLUE" "$STACKER_NC" "$*"
     fi
-    manager_log_to_file "INFO: $*"
+    stacker_log_to_file "INFO: $*"
 }
 
-manager_warn() {
-    if [ -n "$MANAGER_YELLOW" ] && echo -e test >/dev/null 2>&1; then
-        echo -e "${MANAGER_YELLOW}[Warning]${MANAGER_NC} $*" >&2
+stacker_warn() {
+    if [ -n "$STACKER_YELLOW" ] && echo -e test >/dev/null 2>&1; then
+        echo -e "${STACKER_YELLOW}[Warning]${STACKER_NC} $*" >&2
     else
-        printf "%s[Warning]%s %s\n" "$MANAGER_YELLOW" "$MANAGER_NC" "$*" >&2
+        printf "%s[Warning]%s %s\n" "$STACKER_YELLOW" "$STACKER_NC" "$*" >&2
     fi
-    manager_log_to_file "WARN: $*"
+    stacker_log_to_file "WARN: $*"
 }
 
-manager_error() {
-    if [ -n "$MANAGER_RED" ] && echo -e test >/dev/null 2>&1; then
-        echo -e "${MANAGER_RED}[Error]${MANAGER_NC} $*" >&2
+stacker_error() {
+    if [ -n "$STACKER_RED" ] && echo -e test >/dev/null 2>&1; then
+        echo -e "${STACKER_RED}[Error]${STACKER_NC} $*" >&2
     else
-        printf "%s[Error]%s %s\n" "$MANAGER_RED" "$MANAGER_NC" "$*" >&2
+        printf "%s[Error]%s %s\n" "$STACKER_RED" "$STACKER_NC" "$*" >&2
     fi
-    manager_log_to_file "ERROR: $*"
+    stacker_log_to_file "ERROR: $*"
 }
 
-# Debug logging (controlled by MANAGER_DEBUG environment variable)
-manager_debug() {
-    if [ "$MANAGER_DEBUG" = "1" ] || [ "$MANAGER_DEBUG" = "true" ]; then
-        printf "%s[Debug]%s %s\n" "$MANAGER_BLUE" "$MANAGER_NC" "$*" >&2
-        manager_log_to_file "DEBUG: $*"
+# Debug logging (controlled by STACKER_DEBUG environment variable)
+stacker_debug() {
+    if [ "$STACKER_DEBUG" = "1" ] || [ "$STACKER_DEBUG" = "true" ]; then
+        printf "%s[Debug]%s %s\n" "$STACKER_BLUE" "$STACKER_NC" "$*" >&2
+        stacker_log_to_file "DEBUG: $*"
     fi
 }
 
 # POSIX-compliant case conversion functions
-manager_to_upper() {
+stacker_to_upper() {
     printf '%s\n' "$1" | tr '[:lower:]' '[:upper:]'
 }
 
-manager_to_lower() {
+stacker_to_lower() {
     printf '%s\n' "$1" | tr '[:upper:]' '[:lower:]'
 }
 
-# OS and package manager detection (POSIX compliant)
-manager_detect_os() {
+# OS and package stacker detection (POSIX compliant)
+stacker_detect_os() {
     if [ -r /etc/os-release ]; then
         # Source the file safely
         . /etc/os-release 2>/dev/null && printf '%s\n' "${ID:-unknown}"
@@ -147,7 +147,7 @@ manager_detect_os() {
     fi
 }
 
-manager_detect_package_manager() {
+stacker_detect_package_stacker() {
     if command -v apt-get >/dev/null 2>&1; then
         printf 'apt\n'
     elif command -v yum >/dev/null 2>&1; then
@@ -170,7 +170,7 @@ manager_detect_package_manager() {
 }
 
 # Auto-install missing dependencies (POSIX compliant)
-manager_auto_install_deps() {
+stacker_auto_install_deps() {
     local packages="$1"
     local pm
     
@@ -178,105 +178,105 @@ manager_auto_install_deps() {
         return 0
     fi
     
-    pm=$(manager_detect_package_manager)
-    manager_debug "Detected package manager: $pm"
+    pm=$(stacker_detect_package_stacker)
+    stacker_debug "Detected package stacker: $pm"
     
     case "$pm" in
         apt)
-            manager_log "Installing packages with apt: $packages"
+            stacker_log "Installing packages with apt: $packages"
             if sudo -n true 2>/dev/null; then
                 sudo apt-get update >/dev/null 2>&1 || return 1
                 # Use word splitting intentionally for packages
                 # shellcheck disable=SC2086
                 sudo apt-get install -y $packages >/dev/null 2>&1 || return 1
             else
-                manager_error "apt requires sudo privileges"
+                stacker_error "apt requires sudo privileges"
                 return 1
             fi
             ;;
         yum)
-            manager_log "Installing packages with yum: $packages"
+            stacker_log "Installing packages with yum: $packages"
             if sudo -n true 2>/dev/null; then
                 # shellcheck disable=SC2086
                 sudo yum install -y $packages >/dev/null 2>&1 || return 1
             else
-                manager_error "yum requires sudo privileges"
+                stacker_error "yum requires sudo privileges"
                 return 1
             fi
             ;;
         dnf)
-            manager_log "Installing packages with dnf: $packages"
+            stacker_log "Installing packages with dnf: $packages"
             if sudo -n true 2>/dev/null; then
                 # shellcheck disable=SC2086
                 sudo dnf install -y $packages >/dev/null 2>&1 || return 1
             else
-                manager_error "dnf requires sudo privileges"
+                stacker_error "dnf requires sudo privileges"
                 return 1
             fi
             ;;
         apk)
-            manager_log "Installing packages with apk: $packages"
+            stacker_log "Installing packages with apk: $packages"
             if sudo -n true 2>/dev/null; then
                 # shellcheck disable=SC2086
                 sudo apk add --no-cache $packages >/dev/null 2>&1 || return 1
             else
-                manager_error "apk requires sudo privileges"
+                stacker_error "apk requires sudo privileges"
                 return 1
             fi
             ;;
         brew)
-            manager_log "Installing packages with brew: $packages"
+            stacker_log "Installing packages with brew: $packages"
             # Homebrew typically doesn't need sudo
             # shellcheck disable=SC2086
             brew install $packages >/dev/null 2>&1 || return 1
             ;;
         pkg)
-            manager_log "Installing packages with pkg: $packages"
+            stacker_log "Installing packages with pkg: $packages"
             if sudo -n true 2>/dev/null; then
                 # shellcheck disable=SC2086
                 sudo pkg install -y $packages >/dev/null 2>&1 || return 1
             else
-                manager_error "pkg requires sudo privileges"
+                stacker_error "pkg requires sudo privileges"
                 return 1
             fi
             ;;
         pacman)
-            manager_log "Installing packages with pacman: $packages"
+            stacker_log "Installing packages with pacman: $packages"
             if sudo -n true 2>/dev/null; then
                 # shellcheck disable=SC2086
                 sudo pacman -S --noconfirm $packages >/dev/null 2>&1 || return 1
             else
-                manager_error "pacman requires sudo privileges"
+                stacker_error "pacman requires sudo privileges"
                 return 1
             fi
             ;;
         zypper)
-            manager_log "Installing packages with zypper: $packages"
+            stacker_log "Installing packages with zypper: $packages"
             if sudo -n true 2>/dev/null; then
                 # shellcheck disable=SC2086
                 sudo zypper install -y $packages >/dev/null 2>&1 || return 1
             else
-                manager_error "zypper requires sudo privileges"
+                stacker_error "zypper requires sudo privileges"
                 return 1
             fi
             ;;
         *)
-            manager_error "No supported package manager found"
+            stacker_error "No supported package stacker found"
             return 1
             ;;
     esac
     
-    manager_log "Successfully installed: $packages"
+    stacker_log "Successfully installed: $packages"
     return 0
 }
 
 # Check for required tools and auto-install if possible (POSIX compliant)
-manager_check_requirements() {
+stacker_check_requirements() {
     local missing=""
     local missing_packages=""
     local arg1 arg2
     
-    manager_debug "Checking requirements..."
+    stacker_debug "Checking requirements..."
     
     # Process tool/package pairs from arguments
     while [ $# -ge 2 ]; do
@@ -306,70 +306,70 @@ manager_check_requirements() {
     fi
     
     if [ -n "$missing" ]; then
-        manager_warn "Missing required tools:$missing"
+        stacker_warn "Missing required tools:$missing"
         
         # Try auto-install if we have sudo
         if sudo -n true 2>/dev/null || [ "$(id -u)" -eq 0 ]; then
-            manager_log "Attempting to auto-install missing dependencies..."
-            if manager_auto_install_deps "$missing_packages"; then
-                manager_log "Dependencies installed successfully"
+            stacker_log "Attempting to auto-install missing dependencies..."
+            if stacker_auto_install_deps "$missing_packages"; then
+                stacker_log "Dependencies installed successfully"
                 return 0
             else
-                manager_error "Failed to auto-install dependencies"
+                stacker_error "Failed to auto-install dependencies"
             fi
         fi
         
         # Show manual installation instructions
-        manager_error "Please install missing tools manually:"
-        manager_info "  Ubuntu/Debian: sudo apt-get install$missing_packages"
-        manager_info "  RHEL/CentOS: sudo yum install$missing_packages"
-        manager_info "  Fedora: sudo dnf install$missing_packages"
-        manager_info "  Alpine: sudo apk add$missing_packages"
-        manager_info "  Arch: sudo pacman -S$missing_packages"
-        manager_info "  openSUSE: sudo zypper install$missing_packages"
-        manager_info "  macOS: brew install$missing_packages"
+        stacker_error "Please install missing tools manually:"
+        stacker_info "  Ubuntu/Debian: sudo apt-get install$missing_packages"
+        stacker_info "  RHEL/CentOS: sudo yum install$missing_packages"
+        stacker_info "  Fedora: sudo dnf install$missing_packages"
+        stacker_info "  Alpine: sudo apk add$missing_packages"
+        stacker_info "  Arch: sudo pacman -S$missing_packages"
+        stacker_info "  openSUSE: sudo zypper install$missing_packages"
+        stacker_info "  macOS: brew install$missing_packages"
         return 1
     fi
     
-    manager_debug "All requirements satisfied"
+    stacker_debug "All requirements satisfied"
     return 0
 }
 
 # Create XDG Base Directory compliant directories
-manager_create_xdg_dirs() {
-    local tech_name="$MANAGER_TECH_NAME"
+stacker_create_xdg_dirs() {
+    local tech_name="$STACKER_TECH_NAME"
     
     if [ -z "$tech_name" ]; then
-        manager_error "MANAGER_TECH_NAME not set"
+        stacker_error "STACKER_TECH_NAME not set"
         return 1
     fi
     
-    manager_debug "Creating XDG directories for $tech_name"
+    stacker_debug "Creating XDG directories for $tech_name"
     
     # Create base XDG directories
-    mkdir -p "$MANAGER_XDG_CONFIG_HOME" || return 1
-    mkdir -p "$MANAGER_XDG_DATA_HOME" || return 1
-    mkdir -p "$MANAGER_XDG_STATE_HOME" || return 1
-    mkdir -p "$MANAGER_XDG_CACHE_HOME" || return 1
+    mkdir -p "$STACKER_XDG_CONFIG_HOME" || return 1
+    mkdir -p "$STACKER_XDG_DATA_HOME" || return 1
+    mkdir -p "$STACKER_XDG_STATE_HOME" || return 1
+    mkdir -p "$STACKER_XDG_CACHE_HOME" || return 1
     
     # Create technology-specific directories
-    mkdir -p "$MANAGER_XDG_CONFIG_HOME/$tech_name" || return 1
-    mkdir -p "$MANAGER_XDG_DATA_HOME/$tech_name" || return 1
-    mkdir -p "$MANAGER_XDG_STATE_HOME/$tech_name" || return 1
-    mkdir -p "$MANAGER_XDG_CACHE_HOME/$tech_name" || return 1
+    mkdir -p "$STACKER_XDG_CONFIG_HOME/$tech_name" || return 1
+    mkdir -p "$STACKER_XDG_DATA_HOME/$tech_name" || return 1
+    mkdir -p "$STACKER_XDG_STATE_HOME/$tech_name" || return 1
+    mkdir -p "$STACKER_XDG_CACHE_HOME/$tech_name" || return 1
     
     # Update global variables for the technology
-    MANAGER_CONFIG_DIR="$MANAGER_XDG_CONFIG_HOME/$tech_name"
-    MANAGER_DATA_DIR="$MANAGER_XDG_DATA_HOME/$tech_name"
-    MANAGER_STATE_DIR="$MANAGER_XDG_STATE_HOME/$tech_name"
-    MANAGER_CACHE_DIR="$MANAGER_XDG_CACHE_HOME/$tech_name"
+    STACKER_CONFIG_DIR="$STACKER_XDG_CONFIG_HOME/$tech_name"
+    STACKER_DATA_DIR="$STACKER_XDG_DATA_HOME/$tech_name"
+    STACKER_STATE_DIR="$STACKER_XDG_STATE_HOME/$tech_name"
+    STACKER_CACHE_DIR="$STACKER_XDG_CACHE_HOME/$tech_name"
     
-    manager_debug "XDG directories created successfully"
+    stacker_debug "XDG directories created successfully"
     return 0
 }
 
 # Validate input (basic sanitization) - POSIX compliant
-manager_validate_input() {
+stacker_validate_input() {
     local input="$1"
     local type="${2:-string}"
     
@@ -378,7 +378,7 @@ manager_validate_input() {
             # Check for directory traversal attempts (POSIX pattern matching)
             case "$input" in
                 *../*|*/../*|../*|*/..)
-                    manager_error "Invalid path (contains ..): $input"
+                    stacker_error "Invalid path (contains ..): $input"
                     return 1
                     ;;
             esac
@@ -389,7 +389,7 @@ manager_validate_input() {
                     # Basic URL validation
                     ;;
                 *)
-                    manager_error "Invalid URL (must start with http:// or https://): $input"
+                    stacker_error "Invalid URL (must start with http:// or https://): $input"
                     return 1
                     ;;
             esac
@@ -400,7 +400,7 @@ manager_validate_input() {
                     # Basic email validation
                     ;;
                 *)
-                    manager_error "Invalid email format: $input"
+                    stacker_error "Invalid email format: $input"
                     return 1
                     ;;
             esac
@@ -411,8 +411,8 @@ manager_validate_input() {
 }
 
 # Safe temp file creation (POSIX compliant)
-manager_create_temp_file() {
-    local prefix="${1:-manager}"
+stacker_create_temp_file() {
+    local prefix="${1:-stacker}"
     local temp_file
     
     if command -v mktemp >/dev/null 2>&1; then
@@ -425,7 +425,7 @@ manager_create_temp_file() {
         temp_file="/tmp/${prefix}.$$"
         # Use process ID for uniqueness
         if ! touch "$temp_file" 2>/dev/null; then
-            manager_error "Failed to create temporary file"
+            stacker_error "Failed to create temporary file"
             return 1
         fi
         chmod 600 "$temp_file" || return 1
@@ -436,8 +436,8 @@ manager_create_temp_file() {
 }
 
 # Check if running with appropriate privileges
-manager_check_privileges() {
-    local dir="${1:-$MANAGER_INSTALL_DIR}"
+stacker_check_privileges() {
+    local dir="${1:-$STACKER_INSTALL_DIR}"
     
     # If directory doesn't exist, check parent directory
     if [ ! -d "$dir" ]; then
@@ -461,34 +461,34 @@ manager_check_privileges() {
 }
 
 # Execute command with appropriate privileges
-manager_exec_privileged() {
+stacker_exec_privileged() {
     local dir="$1"
     shift
     
     local priv_level
-    priv_level=$(manager_check_privileges "$dir")
-    manager_debug "Checking privileges for $dir: level=$priv_level"
+    priv_level=$(stacker_check_privileges "$dir")
+    stacker_debug "Checking privileges for $dir: level=$priv_level"
     
     case "$priv_level" in
         0)
             # Direct execution
-            manager_debug "Direct execution: $*"
+            stacker_debug "Direct execution: $*"
             "$@"
             ;;
         1)
             # Use sudo
-            manager_debug "Sudo execution: $*"
+            stacker_debug "Sudo execution: $*"
             sudo "$@"
             ;;
         *)
-            manager_error "Insufficient privileges to write to $dir"
+            stacker_error "Insufficient privileges to write to $dir"
             return 1
             ;;
     esac
 }
 
 # Get current user (works even with sudo) - POSIX compliant
-manager_get_user() {
+stacker_get_user() {
     # Try different methods in order of preference
     if [ -n "$SUDO_USER" ]; then
         printf '%s\n' "$SUDO_USER"
@@ -506,9 +506,9 @@ manager_get_user() {
 }
 
 # Get user home directory (works even with sudo) - POSIX compliant
-manager_get_user_home() {
+stacker_get_user_home() {
     local user
-    user=$(manager_get_user)
+    user=$(stacker_get_user)
     
     if [ "$user" = "root" ]; then
         printf '/root\n'
@@ -528,9 +528,9 @@ manager_get_user_home() {
 
 # Export public interface
 core_list_functions() {
-    echo "manager_log manager_info manager_warn manager_error manager_debug"
-    echo "manager_detect_os manager_detect_package_manager manager_check_requirements"
-    echo "manager_create_xdg_dirs manager_validate_input manager_create_temp_file"
-    echo "manager_check_privileges manager_exec_privileged manager_get_user manager_get_user_home"
-    echo "manager_to_upper manager_to_lower manager_auto_install_deps"
+    echo "stacker_log stacker_info stacker_warn stacker_error stacker_debug"
+    echo "stacker_detect_os stacker_detect_package_stacker stacker_check_requirements"
+    echo "stacker_create_xdg_dirs stacker_validate_input stacker_create_temp_file"
+    echo "stacker_check_privileges stacker_exec_privileged stacker_get_user stacker_get_user_home"
+    echo "stacker_to_upper stacker_to_lower stacker_auto_install_deps"
 }
