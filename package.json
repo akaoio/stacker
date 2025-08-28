@@ -18,10 +18,15 @@
   "scripts": {
     "build": "akao-build",
     "dev": "akao-build --watch",
-    "test": "battle test",
+    "test": "battle test --config=battle.config.js",
+    "test:shell": "battle test --pattern='tests/**/*.sh' --shell=/bin/sh",
+    "test:typescript": "battle test --pattern='tests/**/*.{ts,js}' --runner=node",
+    "test:integration": "battle test --pattern='tests/integration/**/*'",
+    "test:ci": "battle test --config=battle.config.js --reporter=json,junit,console --ci",
+    "test:legacy": "./tests/run-tests.sh",
     "docs": "composer generate",
-    "clean": "rm -rf dist/",
-    "prepublish": "npm run build"
+    "clean": "rm -rf dist/ tests/results/ logs/",
+    "prepublish": "npm run build && npm run test:ci"
   },
   "keywords": [
     "shell", 

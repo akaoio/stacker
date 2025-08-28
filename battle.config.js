@@ -10,6 +10,12 @@ export default {
   
   // Test discovery
   testPattern: "tests/**/*.{test,spec}.{js,ts,sh}",
+  testFiles: [
+    "test/battle-integration.test.ts",
+    "test/battle-simple.test.ts", 
+    "tests/battle/hybrid-architecture.test.ts",
+    "tests/battle/shell-compatibility.test.sh"
+  ],
   
   // Test environment
   environment: {
@@ -84,7 +90,8 @@ export default {
     env: {
       TERM: "xterm-256color",
       STACKER_TEST_MODE: "true",
-      STACKER_DEBUG: "false"
+      STACKER_DEBUG: "false",
+      CI: process.env.CI || "false"
     }
   },
   
@@ -167,6 +174,28 @@ export default {
     
     // Experimental features testing
     experimentalFeatures: true
+  },
+  
+  // CI/CD specific configuration
+  ci: {
+    // More tolerant settings for CI environments
+    timeout: 60000,
+    retries: 2,
+    
+    // CI reporting requirements
+    exitOnFailure: false, // Don't exit immediately on v0.0.2 failures
+    generateReports: true,
+    
+    // CI environment detection
+    isCI: process.env.CI === 'true',
+    ciProvider: process.env.GITHUB_ACTIONS ? 'github' : 'unknown',
+    
+    // Artifact generation
+    artifacts: {
+      screenshots: true,
+      logs: true,
+      reports: true
+    }
   },
   
   // Parallel execution

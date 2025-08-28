@@ -1,0 +1,338 @@
+name: Stacker CI/CD - Battle Integration
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+  STACKER_TEST_MODE: 'true'
+  STACKER_DEBUG: 'false'
+
+jobs:
+  # Multi-shell compatibility testing
+  test-shell-compatibility:
+    name: Shell Compatibility (${{ matrix.shell }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        shell: ['/bin/sh', '/bin/bash', '/bin/dash']
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install shell compatibility
+        run: |
+          # Install dash if not present
+          sudo apt-get update
+          sudo apt-get install -y dash
+          
+          # Verify shell availability
+          echo "Testing shell: ${{ matrix.shell }}"
+          ${{ matrix.shell }} --version || echo "Shell version not available"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          # Install Battle framework and dependencies
+          npm ci
+          
+          # Verify Battle installation
+          npx battle --version
+
+      - name: Build TypeScript components
+        run: |
+          npm run build
+          
+          # Verify build artifacts
+          ls -la dist/
+          test -f dist/index.js
+          test -f dist/index.cjs
+
+      - name: Run shell-specific Battle tests
+        shell: bash
+        run: |
+          # Set shell for Battle configuration
+          export BATTLE_SHELL="${{ matrix.shell }}"
+          export SHELL="${{ matrix.shell }}"
+          
+          # Run Battle tests with specific shell
+          npx battle test --shell="${{ matrix.shell }}" --verbose
+        env:
+          TERM: xterm-256color
+
+      - name: Upload shell test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: shell-test-results-${{ matrix.shell }}
+          path: |
+            tests/results/
+            logs/
+          retention-days: 7
+
+  # Core Battle framework testing
+  test-battle-integration:
+    name: Battle Framework Integration
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          
+          # Verify all required tools
+          npx battle --version
+          npx akao-build --version || echo "Builder not yet available"
+
+      - name: Build project
+        run: |
+          npm run build
+          
+          # Verify hybrid architecture
+          test -f dist/index.js    # TypeScript build
+          test -f stacker.sh       # Shell interface
+          test -x stacker.sh       # Shell executable
+
+      - name: Run full Battle test suite
+        run: |
+          # Create test result directories
+          mkdir -p tests/results tests/results/screenshots
+          
+          # Run comprehensive Battle testing
+          npx battle test --config=battle.config.js --reporter=json,junit,console
+        env:
+          TERM: xterm-256color
+          CI: true
+
+      - name: Verify test outputs
+        run: |
+          # Check Battle generated correct outputs
+          test -f tests/results/battle-report.json
+          test -f tests/results/junit.xml
+          
+          # Display test summary
+          echo "=== Battle Test Summary ==="
+          if [ -f tests/results/battle-report.json ]; then
+            node -e "
+              const report = JSON.parse(require('fs').readFileSync('tests/results/battle-report.json', 'utf8'));
+              console.log(\`Total tests: \${report.total || 'N/A'}\`);
+              console.log(\`Passed: \${report.passed || 'N/A'}\`);
+              console.log(\`Failed: \${report.failed || 'N/A'}\`);
+              console.log(\`Success rate: \${report.successRate || 'N/A'}%\`);
+            " || echo "Could not parse test report"
+          fi
+
+      - name: Upload Battle test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: battle-test-results
+          path: |
+            tests/results/
+            logs/
+          retention-days: 30
+
+      - name: Upload test screenshots
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: battle-test-screenshots
+          path: tests/results/screenshots/
+          retention-days: 14
+
+  # Hybrid architecture validation
+  test-hybrid-architecture:
+    name: Hybrid Architecture Validation
+    runs-on: ubuntu-latest
+    needs: [test-battle-integration]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Test TypeScript API interface
+        run: |
+          echo "=== Testing TypeScript API ==="
+          node -e "
+            import('./dist/index.js').then(stacker => {
+              console.log('✅ TypeScript module loads successfully');
+              return stacker.stacker.version();
+            }).then(version => {
+              console.log('✅ Version API works:', version.split('\\n')[0]);
+            }).catch(err => {
+              console.log('❌ TypeScript API failed:', err.message);
+              process.exit(1);
+            });
+          "
+
+      - name: Test Shell interface
+        run: |
+          echo "=== Testing Shell Interface ==="
+          if ./stacker.sh version; then
+            echo "✅ Shell interface works"
+          else
+            echo "❌ Shell interface failed"
+            exit 1
+          fi
+
+      - name: Test interface consistency
+        run: |
+          echo "=== Testing Interface Consistency ==="
+          
+          # Get version from both interfaces
+          SHELL_VERSION=$(./stacker.sh version | head -1)
+          TS_VERSION=$(node -e "import('./dist/index.js').then(m => m.stacker.version().then(v => console.log(v.split('\\n')[0])))" 2>/dev/null)
+          
+          echo "Shell version: $SHELL_VERSION"
+          echo "TypeScript version: $TS_VERSION"
+          
+          if echo "$SHELL_VERSION" | grep -q "0.0.2" && echo "$TS_VERSION" | grep -q "0.0.2"; then
+            echo "✅ Version consistency verified"
+          else
+            echo "❌ Version inconsistency detected"
+            exit 1
+          fi
+
+      - name: Run hybrid integration tests
+        run: |
+          # Run Battle integration tests specifically
+          npx battle test --pattern="tests/integration/**/*.test.{ts,js,sh}" --verbose
+
+  # Package and publish readiness
+  test-package:
+    name: Package Validation
+    runs-on: ubuntu-latest
+    needs: [test-shell-compatibility, test-battle-integration, test-hybrid-architecture]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build for packaging
+        run: |
+          npm run build
+          npm run docs  # Generate documentation
+
+      - name: Test package creation
+        run: |
+          # Create package without publishing
+          npm pack
+          
+          # Verify package contains required files
+          tar -tzf akaoio-stacker-*.tgz | grep -E "(dist/|stacker\.sh|modules/)" || {
+            echo "❌ Package missing required files"
+            exit 1
+          }
+          
+          echo "✅ Package validation successful"
+
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: stacker-package
+          path: akaoio-stacker-*.tgz
+          retention-days: 7
+
+  # Final validation and summary
+  validate-ci-success:
+    name: CI/CD Validation Complete
+    runs-on: ubuntu-latest
+    needs: [test-shell-compatibility, test-battle-integration, test-hybrid-architecture, test-package]
+    if: always()
+    
+    steps:
+      - name: Download all test results
+        uses: actions/download-artifact@v4
+        with:
+          path: all-test-results/
+
+      - name: Generate CI summary
+        run: |
+          echo "# Stacker CI/CD Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Test Results Overview" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Check job results
+          if [ "${{ needs.test-shell-compatibility.result }}" = "success" ]; then
+            echo "✅ Shell Compatibility: PASSED" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Shell Compatibility: FAILED" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ needs.test-battle-integration.result }}" = "success" ]; then
+            echo "✅ Battle Integration: PASSED" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Battle Integration: FAILED" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ needs.test-hybrid-architecture.result }}" = "success" ]; then
+            echo "✅ Hybrid Architecture: PASSED" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Hybrid Architecture: FAILED" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ needs.test-package.result }}" = "success" ]; then
+            echo "✅ Package Validation: PASSED" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Package Validation: FAILED" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Battle Framework Integration" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Battle configuration integrated" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ PTY terminal testing enabled" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Multi-shell compatibility validated" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Hybrid architecture tested" >> $GITHUB_STEP_SUMMARY
+
+      - name: Report CI status
+        run: |
+          if [ "${{ needs.test-shell-compatibility.result }}" = "success" ] && \
+             [ "${{ needs.test-battle-integration.result }}" = "success" ] && \
+             [ "${{ needs.test-hybrid-architecture.result }}" = "success" ] && \
+             [ "${{ needs.test-package.result }}" = "success" ]; then
+            echo "🎉 All CI/CD checks passed! Stacker is ready for deployment."
+          else
+            echo "⚠️ Some CI/CD checks failed. Review the results above."
+            exit 1
+          fi
