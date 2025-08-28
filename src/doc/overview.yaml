@@ -1,9 +1,9 @@
 project:
-  name: "@akaoio/manager"
+  name: "@akaoio/stacker"
   version: "2.0.0"
   license: "MIT"
   author: "AKAO.IO"
-  repository: "https://github.com/akaoio/manager"
+  repository: "https://github.com/akaoio/stacker"
   description: "Universal POSIX shell framework for system management - The foundational framework that standardizes patterns across all technologies with modular architecture"
   philosophy: "Manager brings order to chaos - a universal shell framework with modular loading that works everywhere, forever."
 
@@ -25,26 +25,26 @@ core_principles:
     critical: true
 
 architecture:
-  overview: "Manager is a comprehensive shell framework that provides standardized patterns for system management, configuration, installation, updates, and service orchestration. Version 2.0.0 features a complete CLI interface with interactive commands and comprehensive help system."
+  overview: "Stacker is a comprehensive shell framework that provides standardized patterns for system management, configuration, installation, updates, and service orchestration. Version 2.0.0 features a complete CLI interface with interactive commands and comprehensive help system."
   
   components:
-    - name: "Core Module (manager-core.sh)"
+    - name: "Core Module (stacker-core.sh)"
       description: "Central framework providing common functions, error handling, logging, and state management"
       responsibility: "Foundation layer for all Manager operations"
     
-    - name: "Configuration Module (manager-config.sh)"
+    - name: "Configuration Module (stacker-config.sh)"
       description: "XDG-compliant configuration management with JSON support and environment variable overrides"
       responsibility: "Centralized configuration handling across all modules"
     
-    - name: "Installation Module (manager-install.sh)"
+    - name: "Installation Module (stacker-install.sh)"
       description: "Universal installation framework supporting systemd, cron, and manual deployment"
       responsibility: "Standardized installation across different environments"
     
-    - name: "Update Module (manager-update.sh)"
+    - name: "Update Module (stacker-update.sh)"
       description: "Intelligent update system with version management and rollback capabilities"
       responsibility: "Safe and reliable system updates"
     
-    - name: "Service Module (manager-service.sh)"
+    - name: "Service Module (stacker-service.sh)"
       description: "Service lifecycle management for systemd, init.d, and standalone daemons"
       responsibility: "Unified service control interface"
     
@@ -105,7 +105,7 @@ use_cases:
 
 why_manager:
   title: "Why Manager Matters"
-  description: "Manager is the foundational framework that brings consistency and reliability to shell-based system management. While modern tools require complex dependencies and runtimes, Manager provides a universal, dependency-free solution that works everywhere, forever."
+  description: "Stacker is the foundational framework that brings consistency and reliability to shell-based system management. While modern tools require complex dependencies and runtimes, Stacker provides a universal, dependency-free solution that works everywhere, forever."
   
   benefits:
     - "No dependencies means no dependency hell"

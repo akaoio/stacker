@@ -6,7 +6,7 @@ set -e
 
 # Test configuration
 TEST_DIR="$(dirname "$0")"
-MANAGER_DIR="$(dirname "$TEST_DIR")"
+STACKER_DIR="$(dirname "$TEST_DIR")"
 TEST_LOG="/tmp/manager-posix-test.log"
 
 # Colors for test output
@@ -92,11 +92,11 @@ test_xdg_compliance() {
     export XDG_DATA_HOME="$temp_xdg_data"
     
     # Source core functions
-    . "$MANAGER_DIR/manager-core-posix.sh"
+    . "$STACKER_DIR/manager-core-posix.sh"
     
     # Test XDG directory creation
-    MANAGER_TECH_NAME="testapp"
-    if ! manager_create_xdg_dirs; then
+    STACKER_TECH_NAME="testapp"
+    if ! stacker_create_xdg_dirs; then
         test_error "Failed to create XDG directories"
         rm -rf "$temp_home"
         return 1
@@ -111,7 +111,7 @@ test_xdg_compliance() {
     
     # Clean up
     rm -rf "$temp_home"
-    unset HOME XDG_CONFIG_HOME XDG_DATA_HOME MANAGER_TECH_NAME
+    unset HOME XDG_CONFIG_HOME XDG_DATA_HOME STACKER_TECH_NAME
     
     return 0
 }
@@ -127,46 +127,46 @@ test_core_functions() {
 #!/bin/sh
 # Test script for core functions
 
-MANAGER_DIR="$MANAGER_DIR"
-. "\$MANAGER_DIR/manager-core-posix.sh"
+STACKER_DIR="$STACKER_DIR"
+. "\$STACKER_DIR/manager-core-posix.sh"
 
 # Test logging functions
-manager_log "Test log message"
-manager_info "Test info message" 
-manager_warn "Test warning message"
-manager_error "Test error message"
+stacker_log "Test log message"
+stacker_info "Test info message" 
+stacker_warn "Test warning message"
+stacker_error "Test error message"
 
 # Test OS detection
-OS=$(manager_detect_os)
+OS=$(stacker_detect_os)
 if [ -z "$OS" ]; then
     exit 1
 fi
 
 # Test package manager detection
-PM=$(manager_detect_package_manager)
+PM=$(stacker_detect_package_manager)
 if [ -z "$PM" ]; then
     exit 1
 fi
 
 # Test user detection
-USER=$(manager_get_user)
+USER=$(stacker_get_user)
 if [ -z "$USER" ]; then
     exit 1
 fi
 
 # Test temp file creation
-TEMP_FILE=$(manager_create_temp_file)
+TEMP_FILE=$(stacker_create_temp_file)
 if [ ! -f "$TEMP_FILE" ]; then
     exit 1
 fi
 rm -f "$TEMP_FILE"
 
 # Test input validation
-if ! manager_validate_input "/valid/path" "path"; then
+if ! stacker_validate_input "/valid/path" "path"; then
     exit 1
 fi
 
-if manager_validate_input "../invalid/path" "path"; then
+if stacker_validate_input "../invalid/path" "path"; then
     exit 1
 fi
 
@@ -199,10 +199,10 @@ EOF
 }
 
 # Test POSIX compliance for all manager files
-test_all_manager_files() {
+test_all_stacker_files() {
     local files shells shell file success=0 total=0
     
-    files="$MANAGER_DIR/manager.sh $MANAGER_DIR/manager-core-posix.sh $MANAGER_DIR/manager-self-update-posix.sh"
+    files="$STACKER_DIR/stacker.sh $STACKER_DIR/manager-core-posix.sh $STACKER_DIR/manager-self-update-posix.sh"
     shells=$(find_shells)
     
     test_log "Testing POSIX compliance for manager framework files"
@@ -251,19 +251,19 @@ test_xdg_env_handling() {
     
     cat > "$temp_script" << EOF
 #!/bin/sh
-MANAGER_DIR="$MANAGER_DIR"
-. "\$MANAGER_DIR/manager-core-posix.sh"
+STACKER_DIR="$STACKER_DIR"
+. "\$STACKER_DIR/manager-core-posix.sh"
 
 # Test with custom XDG paths
 export XDG_CONFIG_HOME="/tmp/test-config"
 export XDG_DATA_HOME="/tmp/test-data"
 
 # Check that variables are respected
-if [ "$MANAGER_XDG_CONFIG_HOME" != "/tmp/test-config" ]; then
+if [ "$STACKER_XDG_CONFIG_HOME" != "/tmp/test-config" ]; then
     exit 1
 fi
 
-if [ "$MANAGER_XDG_DATA_HOME" != "/tmp/test-data" ]; then
+if [ "$STACKER_XDG_DATA_HOME" != "/tmp/test-data" ]; then
     exit 1
 fi
 
@@ -288,7 +288,7 @@ run_all_tests() {
     local tests_passed=0 tests_total=0
     
     printf "========================================\n"
-    printf "  Manager Framework POSIX Compliance Test\n"  
+    printf "  Stacker Framework POSIX Compliance Test\n"  
     printf "========================================\n"
     printf "\n"
     
@@ -299,7 +299,7 @@ run_all_tests() {
     # Test 1: File syntax compliance
     tests_total=$((tests_total + 1))
     test_log "Test 1: File syntax compliance"
-    if test_all_manager_files; then
+    if test_all_stacker_files; then
         test_log "✓ PASSED: File syntax compliance"
         tests_passed=$((tests_passed + 1))
     else
@@ -350,11 +350,11 @@ run_all_tests() {
     
     if [ "$tests_passed" -eq "$tests_total" ]; then
         test_log "🎉 All POSIX compliance tests PASSED!"
-        printf "%s✅ Manager framework is POSIX compliant%s\n" "$GREEN" "$NC"
+        printf "%s✅ Stacker framework is POSIX compliant%s\n" "$GREEN" "$NC"
         return 0
     else
         test_error "❌ Some tests FAILED - framework needs fixes"
-        printf "%s❌ Manager framework has POSIX compliance issues%s\n" "$RED" "$NC"
+        printf "%s❌ Stacker framework has POSIX compliance issues%s\n" "$RED" "$NC"
         return 1
     fi
 }
@@ -392,7 +392,7 @@ main() {
 # Handle command line arguments
 case "${1:-}" in
     --syntax-only)
-        test_all_manager_files
+        test_all_stacker_files
         ;;
     --core-only)
         test_core_functions
@@ -401,7 +401,7 @@ case "${1:-}" in
         test_xdg_compliance
         ;;
     --help)
-        printf "Manager Framework POSIX Compliance Test\n"
+        printf "Stacker Framework POSIX Compliance Test\n"
         printf "\n"
         printf "Usage: %s [option]\n" "$0"
         printf "\n"

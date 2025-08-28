@@ -1,6 +1,6 @@
 # Simple Daemon Example
 
-This example demonstrates how to use the @akaoio/manager framework to create a complete installation and management system for a simple daemon application.
+This example demonstrates how to use the @akaoio/stacker framework to create a complete installation and management system for a simple daemon application.
 
 ## Features Demonstrated
 
@@ -102,17 +102,17 @@ This example shows how to integrate with the manager framework:
 
 ```bash
 # Load framework
-MANAGER_DIR="$(dirname "$0")/../../"
-. "$MANAGER_DIR/manager.sh"
+STACKER_DIR="$(dirname "$0")/../../"
+. "$STACKER_DIR/stacker.sh"
 
 # Initialize for technology
-manager_init "simple-daemon" \
+stacker_init "simple-daemon" \
              "https://github.com/example/simple-daemon.git" \
              "simple-daemon.sh" \
              "Example daemon service"
 
 # Install with options
-manager_install --redundant --auto-update
+stacker_install --redundant --auto-update
 ```
 
 ## Auto-Update System

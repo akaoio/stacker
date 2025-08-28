@@ -33,13 +33,13 @@
 
 ```bash
 # Quick install with default settings
-curl -sSL https://raw.githubusercontent.com/akaoio/manager/main/install.sh | sh
+curl -sSL https://raw.githubusercontent.com/akaoio/stacker/main/install.sh | sh
 
 # Install as systemd service
-curl -sSL https://raw.githubusercontent.com/akaoio/manager/main/install.sh | sh -s -- --systemd
+curl -sSL https://raw.githubusercontent.com/akaoio/stacker/main/install.sh | sh -s -- --systemd
 
 # Install with custom prefix
-curl -sSL https://raw.githubusercontent.com/akaoio/manager/main/install.sh | sh -s -- --prefix=/opt/manager
+curl -sSL https://raw.githubusercontent.com/akaoio/stacker/main/install.sh | sh -s -- --prefix=/opt/manager
 ```
 
 ## Usage
@@ -143,9 +143,9 @@ Manager follows strict POSIX compliance and zero-dependency principles. All code
 
 ## Support
 
-- **Issues**: [GitHub Issues](https://github.com/akaoio/manager/issues)
-- **Documentation**: [Wiki](https://github.com/akaoio/manager/wiki)
-- **Community**: [Discussions](https://github.com/akaoio/manager/discussions)
+- **Issues**: [GitHub Issues](https://github.com/akaoio/stacker/issues)
+- **Documentation**: [Wiki](https://github.com/akaoio/stacker/wiki)
+- **Community**: [Discussions](https://github.com/akaoio/stacker/discussions)
 
 ---
 

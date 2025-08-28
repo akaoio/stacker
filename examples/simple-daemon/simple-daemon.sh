@@ -195,7 +195,7 @@ show_status() {
 # Show version
 show_version() {
     echo "$DAEMON_NAME v$DAEMON_VERSION"
-    echo "Example daemon using @akaoio/manager framework"
+    echo "Example daemon using @akaoio/stacker framework"
 }
 
 # Show help

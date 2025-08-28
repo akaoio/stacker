@@ -1,8 +1,8 @@
-# Manager Framework POSIX & XDG Compliance
+# Stacker Framework POSIX & XDG Compliance
 
 ## Overview
 
-The @akaoio/manager framework has been designed from the ground up to be **fully POSIX compliant** and **XDG Base Directory Specification compliant**. This ensures universal compatibility and follows modern Unix standards.
+The @akaoio/stacker framework has been designed from the ground up to be **fully POSIX compliant** and **XDG Base Directory Specification compliant**. This ensures universal compatibility and follows modern Unix standards.
 
 **Recent Enhancements (v1.1.0):**
 - Enhanced color handling with NO_COLOR and FORCE_COLOR support
@@ -52,19 +52,19 @@ The framework properly implements the XDG Base Directory Specification:
 
 ```bash
 # Configuration files
-${XDG_CONFIG_HOME:-$HOME/.config}/manager/
+${XDG_CONFIG_HOME:-$HOME/.config}/stacker/
 ${XDG_CONFIG_HOME:-$HOME/.config}/$TECH_NAME/
 
 # Data files (logs, databases)  
-${XDG_DATA_HOME:-$HOME/.local/share}/manager/
+${XDG_DATA_HOME:-$HOME/.local/share}/stacker/
 ${XDG_DATA_HOME:-$HOME/.local/share}/$TECH_NAME/
 
 # State files (runtime state, PIDs)
-${XDG_STATE_HOME:-$HOME/.local/state}/manager/
+${XDG_STATE_HOME:-$HOME/.local/state}/stacker/
 ${XDG_STATE_HOME:-$HOME/.local/state}/$TECH_NAME/
 
 # Cache files (temporary data)
-${XDG_CACHE_HOME:-$HOME/.cache}/manager/
+${XDG_CACHE_HOME:-$HOME/.cache}/stacker/
 ${XDG_CACHE_HOME:-$HOME/.cache}/$TECH_NAME/
 ```
 
@@ -80,8 +80,8 @@ ${XDG_CACHE_HOME:-$HOME/.cache}/$TECH_NAME/
 
 | Purpose | Location | Example |
 |---------|----------|---------|
-| Manager config | `~/.config/manager/` | Registry, version info |
-| Manager logs | `~/.local/share/manager/` | Self-update logs |
+| Manager config | `~/.config/stacker/` | Registry, version info |
+| Manager logs | `~/.local/share/stacker/` | Self-update logs |
 | Technology config | `~/.config/mytool/` | Tool configuration |
 | Technology data | `~/.local/share/mytool/` | Application data, logs |
 | Technology state | `~/.local/state/mytool/` | Runtime state, PIDs |
@@ -93,16 +93,16 @@ ${XDG_CACHE_HOME:-$HOME/.cache}/$TECH_NAME/
 ```bash
 # Instead of ${var^^} (bash-only)
 # Now using direct tr to avoid function dependencies
-tech_upper=$(printf '%s' "$MANAGER_TECH_NAME" | tr '[:lower:]' '[:upper:]')
+tech_upper=$(printf '%s' "$STACKER_TECH_NAME" | tr '[:lower:]' '[:upper:]')
 
 # Instead of ${var,,} (bash-only)  
-tech_lower=$(printf '%s' "$MANAGER_TECH_NAME" | tr '[:upper:]' '[:lower:]')
+tech_lower=$(printf '%s' "$STACKER_TECH_NAME" | tr '[:upper:]' '[:lower:]')
 ```
 
 ### Temporary Files (POSIX)
 ```bash
 # Portable temp file creation with fallback
-manager_create_temp_file() {
+stacker_create_temp_file() {
     local prefix="${1:-manager}"
     local temp_file
     
@@ -123,7 +123,7 @@ manager_create_temp_file() {
 ### File Reading (POSIX)
 ```bash
 # POSIX-compliant file reading
-while IFS=':' read -r project_path manager_path || [ -n "$project_path" ]; do
+while IFS=':' read -r project_path stacker_path || [ -n "$project_path" ]; do
     [ -n "$project_path" ] || continue  # Skip empty lines
     # Process line...
 done < "$file"
@@ -133,15 +133,15 @@ done < "$file"
 ```bash
 # Enhanced color-aware output (v1.1.0)
 if [ "${NO_COLOR:-0}" = "1" ] || [ "${FORCE_COLOR:-0}" = "0" ]; then
-    MANAGER_GREEN=''
-    MANAGER_NC=''
+    STACKER_GREEN=''
+    STACKER_NC=''
 elif [ "${FORCE_COLOR:-0}" = "1" ] || { [ -t 1 ] && [ "${TERM:-dumb}" != "dumb" ]; }; then
-    MANAGER_GREEN='\033[0;32m'
-    MANAGER_NC='\033[0m'
+    STACKER_GREEN='\033[0;32m'
+    STACKER_NC='\033[0m'
 fi
 
 # Use printf for consistent output
-printf "%s[Manager]%s %s\n" "$MANAGER_GREEN" "$MANAGER_NC" "$message"
+printf "%s[Manager]%s %s\n" "$STACKER_GREEN" "$STACKER_NC" "$message"
 
 # Avoid echo -e (not POSIX)
 # Avoid echo -n (not portable)
@@ -213,13 +213,13 @@ The framework includes comprehensive testing:
 
 ```
 manager/
-├── manager.sh                     # Main framework (POSIX)
+├── stacker.sh                     # Main framework (POSIX)
 ├── manager-core-posix.sh          # Core functions (POSIX/XDG)
 ├── manager-self-update-posix.sh   # Self-update system (POSIX/XDG)
-├── manager-install.sh             # Installation functions
-├── manager-service.sh             # Service management
-├── manager-update.sh              # Update functions
-├── manager-config.sh              # Configuration management
+├── stacker-install.sh             # Installation functions
+├── stacker-service.sh             # Service management
+├── stacker-update.sh              # Update functions
+├── stacker-config.sh              # Configuration management
 ├── tests/
 │   └── test-posix-compliance.sh   # POSIX compliance tests
 └── POSIX-XDG-COMPLIANCE.md       # This document
@@ -233,11 +233,11 @@ cd manager/
 ./tests/test-posix-compliance.sh
 
 # Test with specific shell
-dash ./manager.sh --help
-ksh ./manager.sh --version
+dash ./stacker.sh --help
+ksh ./stacker.sh --version
 
 # Verify XDG compliance
-XDG_CONFIG_HOME=/tmp/config ./manager.sh --self-status
+XDG_CONFIG_HOME=/tmp/config ./stacker.sh --self-status
 ```
 
 The manager framework achieves **100% POSIX compliance** and **full XDG Base Directory Specification compliance**, ensuring it works reliably across all Unix-like systems while respecting modern Unix standards and user expectations.

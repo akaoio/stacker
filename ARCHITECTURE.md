@@ -1,10 +1,10 @@
-# @akaoio/manager Architecture
+# @akaoio/stacker Architecture
 
 Universal POSIX shell framework for system management - The foundational framework that standardizes patterns across all technologies with modular architecture
 
 ## System Architecture
 
-Manager is a comprehensive shell framework that provides standardized patterns for system management, configuration, installation, updates, and service orchestration. Version 2.0.0 features a complete CLI interface with interactive commands and comprehensive help system.
+Stacker is a comprehensive shell framework that provides standardized patterns for system management, configuration, installation, updates, and service orchestration. Version 2.0.0 features a complete CLI interface with interactive commands and comprehensive help system.
 
 ## Design Philosophy
 
@@ -39,90 +39,90 @@ Built to last forever - when languages come and go, Manager remains
 
 ## Component Architecture
 
-### Core Module (manager-core.sh)
+### Core Module (stacker-core.sh)
 
 **Purpose**: Central framework providing common functions, error handling, logging, and state management
 
 **Responsibility**: Foundation layer for all Manager operations
 
-**File**: `Core Module (manager-core.sh)`
+**File**: `Core Module (stacker-core.sh)`
 
 **Dependencies**: None (Pure POSIX shell)
 
 **Interface**:
-- Exports functions with `manager_` prefix
+- Exports functions with `stacker_` prefix
 - Uses environment variables for configuration
 - Returns standard exit codes
 - Logs via centralized logging
 
 ---
 
-### Configuration Module (manager-config.sh)
+### Configuration Module (stacker-config.sh)
 
 **Purpose**: XDG-compliant configuration management with JSON support and environment variable overrides
 
 **Responsibility**: Centralized configuration handling across all modules
 
-**File**: `Configuration Module (manager-config.sh)`
+**File**: `Configuration Module (stacker-config.sh)`
 
 **Dependencies**: None (Pure POSIX shell)
 
 **Interface**:
-- Exports functions with `manager_` prefix
+- Exports functions with `stacker_` prefix
 - Uses environment variables for configuration
 - Returns standard exit codes
 - Logs via centralized logging
 
 ---
 
-### Installation Module (manager-install.sh)
+### Installation Module (stacker-install.sh)
 
 **Purpose**: Universal installation framework supporting systemd, cron, and manual deployment
 
 **Responsibility**: Standardized installation across different environments
 
-**File**: `Installation Module (manager-install.sh)`
+**File**: `Installation Module (stacker-install.sh)`
 
 **Dependencies**: None (Pure POSIX shell)
 
 **Interface**:
-- Exports functions with `manager_` prefix
+- Exports functions with `stacker_` prefix
 - Uses environment variables for configuration
 - Returns standard exit codes
 - Logs via centralized logging
 
 ---
 
-### Update Module (manager-update.sh)
+### Update Module (stacker-update.sh)
 
 **Purpose**: Intelligent update system with version management and rollback capabilities
 
 **Responsibility**: Safe and reliable system updates
 
-**File**: `Update Module (manager-update.sh)`
+**File**: `Update Module (stacker-update.sh)`
 
 **Dependencies**: None (Pure POSIX shell)
 
 **Interface**:
-- Exports functions with `manager_` prefix
+- Exports functions with `stacker_` prefix
 - Uses environment variables for configuration
 - Returns standard exit codes
 - Logs via centralized logging
 
 ---
 
-### Service Module (manager-service.sh)
+### Service Module (stacker-service.sh)
 
 **Purpose**: Service lifecycle management for systemd, init.d, and standalone daemons
 
 **Responsibility**: Unified service control interface
 
-**File**: `Service Module (manager-service.sh)`
+**File**: `Service Module (stacker-service.sh)`
 
 **Dependencies**: None (Pure POSIX shell)
 
 **Interface**:
-- Exports functions with `manager_` prefix
+- Exports functions with `stacker_` prefix
 - Uses environment variables for configuration
 - Returns standard exit codes
 - Logs via centralized logging
@@ -140,7 +140,7 @@ Built to last forever - when languages come and go, Manager remains
 **Dependencies**: None (Pure POSIX shell)
 
 **Interface**:
-- Exports functions with `manager_` prefix
+- Exports functions with `stacker_` prefix
 - Uses environment variables for configuration
 - Returns standard exit codes
 - Logs via centralized logging
@@ -158,7 +158,7 @@ Built to last forever - when languages come and go, Manager remains
 **Dependencies**: None (Pure POSIX shell)
 
 **Interface**:
-- Exports functions with `manager_` prefix
+- Exports functions with `stacker_` prefix
 - Uses environment variables for configuration
 - Returns standard exit codes
 - Logs via centralized logging
@@ -173,7 +173,7 @@ Built to last forever - when languages come and go, Manager remains
 Manager uses a dynamic module loading system that allows extending functionality without modifying core.
 
 ```
-manager-core.sh
+stacker-core.sh
     ↓
 [Module Loader]
     ↓
@@ -193,9 +193,9 @@ Each module follows this structure:
 ```bash
 module-name.sh
 ├── Metadata
-│   ├── MANAGER_MODULE_NAME
-│   ├── MANAGER_MODULE_VERSION
-│   └── MANAGER_MODULE_DESCRIPTION
+│   ├── STACKER_MODULE_NAME
+│   ├── STACKER_MODULE_VERSION
+│   └── STACKER_MODULE_DESCRIPTION
 ├── Lifecycle
 │   ├── module_init()
 │   ├── module_verify()
@@ -262,10 +262,10 @@ Check Version → Download → Verify → Backup Current
 │   └── manager             # Main executable
 ├── lib/
 │   └── manager/
-│       ├── manager-core.sh     # Core framework
-│       ├── manager-config.sh   # Config module
-│       ├── manager-install.sh  # Install module
-│       ├── manager-service.sh  # Service module
+│       ├── stacker-core.sh     # Core framework
+│       ├── stacker-config.sh   # Config module
+│       ├── stacker-install.sh  # Install module
+│       ├── stacker-service.sh  # Service module
 │       └── modules/            # Additional modules
 └── share/
     └── manager/
@@ -276,16 +276,16 @@ Check Version → Download → Verify → Backup Current
 ### User Data Layout (XDG Compliant)
 
 ```
-~/.config/manager/
+~/.config/stacker/
 ├── config.json            # User configuration
 └── modules/              # User modules
 
-~/.local/share/manager/
+~/.local/share/stacker/
 ├── state.json            # Application state
 ├── backups/             # Version backups
 └── logs/                # Application logs
 
-~/.cache/manager/
+~/.cache/stacker/
 ├── downloads/           # Update downloads
 └── temp/               # Temporary files
 ```
@@ -458,6 +458,6 @@ All future changes will maintain:
 
 ---
 
-*@akaoio/manager Architecture Documentation*
+*@akaoio/stacker Architecture Documentation*
 
 *Version 2.0.0 | Manager brings order to chaos - a universal shell framework with modular loading that works everywhere, forever.*

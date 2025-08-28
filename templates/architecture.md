@@ -37,7 +37,7 @@
 **Dependencies**: None (Pure POSIX shell)
 
 **Interface**:
-- Exports functions with `manager_` prefix
+- Exports functions with `stacker_` prefix
 - Uses environment variables for configuration
 - Returns standard exit codes
 - Logs via centralized logging
@@ -53,7 +53,7 @@
 Manager uses a dynamic module loading system that allows extending functionality without modifying core.
 
 ```
-manager-core.sh
+stacker-core.sh
     ↓
 [Module Loader]
     ↓
@@ -73,9 +73,9 @@ Each module follows this structure:
 ```bash
 module-name.sh
 ├── Metadata
-│   ├── MANAGER_MODULE_NAME
-│   ├── MANAGER_MODULE_VERSION
-│   └── MANAGER_MODULE_DESCRIPTION
+│   ├── STACKER_MODULE_NAME
+│   ├── STACKER_MODULE_VERSION
+│   └── STACKER_MODULE_DESCRIPTION
 ├── Lifecycle
 │   ├── module_init()
 │   ├── module_verify()
@@ -142,10 +142,10 @@ Check Version → Download → Verify → Backup Current
 │   └── manager             # Main executable
 ├── lib/
 │   └── manager/
-│       ├── manager-core.sh     # Core framework
-│       ├── manager-config.sh   # Config module
-│       ├── manager-install.sh  # Install module
-│       ├── manager-service.sh  # Service module
+│       ├── stacker-core.sh     # Core framework
+│       ├── stacker-config.sh   # Config module
+│       ├── stacker-install.sh  # Install module
+│       ├── stacker-service.sh  # Service module
 │       └── modules/            # Additional modules
 └── share/
     └── manager/
@@ -156,16 +156,16 @@ Check Version → Download → Verify → Backup Current
 ### User Data Layout (XDG Compliant)
 
 ```
-~/.config/manager/
+~/.config/stacker/
 ├── config.json            # User configuration
 └── modules/              # User modules
 
-~/.local/share/manager/
+~/.local/share/stacker/
 ├── state.json            # Application state
 ├── backups/             # Version backups
 └── logs/                # Application logs
 
-~/.cache/manager/
+~/.cache/stacker/
 ├── downloads/           # Update downloads
 └── temp/               # Temporary files
 ```

@@ -2,11 +2,11 @@ commands:
   main:
     name: "manager"
     description: "Universal POSIX shell framework for system management"
-    usage: "./manager.sh [COMMAND] [OPTIONS]"
+    usage: "./stacker.sh [COMMAND] [OPTIONS]"
     
   subcommands:
     - name: "init, -i"
-      description: "Initialize Manager framework in current directory"
+      description: "Initialize Stacker framework in current directory"
       usage: "manager init [OPTIONS]"
       aliases: ["init", "-i"]
       options:
@@ -118,7 +118,7 @@ commands:
           description: "Rollback to specific version"
     
     - name: "self-update"
-      description: "Update Manager framework itself"
+      description: "Update Stacker framework itself"
       usage: "manager self-update [--check]"
       options:
         - flag: "--check"
@@ -130,7 +130,7 @@ commands:
         - command: "manager self-update --check"
           description: "Check for Manager updates"
         - command: "manager self-update"
-          description: "Update Manager framework"
+          description: "Update Stacker framework"
     
     - name: "version, -v"
       description: "Show version information"
@@ -151,26 +151,26 @@ commands:
           description: "Show help for install command"
 
 environment_variables:
-  - name: "MANAGER_CONFIG_DIR"
+  - name: "STACKER_CONFIG_DIR"
     description: "Override default config directory"
-    default: "$HOME/.config/manager"
+    default: "$HOME/.config/stacker"
   
-  - name: "MANAGER_DATA_DIR"
+  - name: "STACKER_DATA_DIR"
     description: "Override default data directory"
-    default: "$HOME/.local/share/manager"
+    default: "$HOME/.local/share/stacker"
   
-  - name: "MANAGER_LOG_LEVEL"
+  - name: "STACKER_LOG_LEVEL"
     description: "Logging level (debug, info, warn, error)"
     default: "info"
   
-  - name: "MANAGER_UPDATE_CHANNEL"
+  - name: "STACKER_UPDATE_CHANNEL"
     description: "Update channel (stable, beta, nightly)"
     default: "stable"
   
-  - name: "MANAGER_AUTO_UPDATE"
+  - name: "STACKER_AUTO_UPDATE"
     description: "Enable automatic updates"
     default: "false"
   
-  - name: "MANAGER_PREFIX"
+  - name: "STACKER_PREFIX"
     description: "Installation prefix"
     default: "/usr/local"

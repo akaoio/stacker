@@ -1,4 +1,4 @@
-# @akaoio/manager API Reference
+# @akaoio/stacker API Reference
 
 Universal POSIX shell framework for system management - The foundational framework that standardizes patterns across all technologies with modular architecture
 
@@ -6,24 +6,24 @@ Universal POSIX shell framework for system management - The foundational framewo
 
 ### Framework Functions
 
-#### `manager_init()`
-Initialize the Manager framework.
+#### `stacker_init()`
+Initialize the Stacker framework.
 
-**Usage**: `manager_init [options]`
+**Usage**: `stacker_init [options]`
 
 **Returns**: 0 on success, 1 on failure
 
 **Example**:
 ```bash
-manager_init || exit 1
+stacker_init || exit 1
 ```
 
 ---
 
-#### `manager_load_module()`
-Load a Manager module dynamically.
+#### `stacker_load_module()`
+Load a Stacker module dynamically.
 
-**Usage**: `manager_load_module module_name`
+**Usage**: `stacker_load_module module_name`
 
 **Parameters**:
 - `module_name`: Name of the module to load
@@ -32,7 +32,7 @@ Load a Manager module dynamically.
 
 **Example**:
 ```bash
-manager_load_module "config" || {
+stacker_load_module "config" || {
     echo "Failed to load config module"
     exit 1
 }
@@ -40,10 +40,10 @@ manager_load_module "config" || {
 
 ---
 
-#### `manager_config_get()`
+#### `stacker_config_get()`
 Get a configuration value.
 
-**Usage**: `manager_config_get key [default]`
+**Usage**: `stacker_config_get key [default]`
 
 **Parameters**:
 - `key`: Configuration key
@@ -53,15 +53,15 @@ Get a configuration value.
 
 **Example**:
 ```bash
-interval=$(manager_config_get "update.interval" "3600")
+interval=$(stacker_config_get "update.interval" "3600")
 ```
 
 ---
 
-#### `manager_config_set()`
+#### `stacker_config_set()`
 Set a configuration value.
 
-**Usage**: `manager_config_set key value`
+**Usage**: `stacker_config_set key value`
 
 **Parameters**:
 - `key`: Configuration key
@@ -71,15 +71,15 @@ Set a configuration value.
 
 **Example**:
 ```bash
-manager_config_set "update.interval" "1800"
+stacker_config_set "update.interval" "1800"
 ```
 
 ---
 
-#### `manager_log()`
+#### `stacker_log()`
 Log a message with level.
 
-**Usage**: `manager_log level message`
+**Usage**: `stacker_log level message`
 
 **Parameters**:
 - `level`: Log level (debug, info, warn, error)
@@ -87,16 +87,16 @@ Log a message with level.
 
 **Example**:
 ```bash
-manager_log "info" "Starting update process"
-manager_log "error" "Failed to connect to server"
+stacker_log "info" "Starting update process"
+stacker_log "error" "Failed to connect to server"
 ```
 
 ---
 
-#### `manager_error()`
+#### `stacker_error()`
 Handle errors with proper cleanup.
 
-**Usage**: `manager_error message [exit_code]`
+**Usage**: `stacker_error message [exit_code]`
 
 **Parameters**:
 - `message`: Error message
@@ -104,35 +104,35 @@ Handle errors with proper cleanup.
 
 **Example**:
 ```bash
-command || manager_error "Command failed" 2
+command || stacker_error "Command failed" 2
 ```
 
 ---
 
 ### Service Functions
 
-#### `manager_service_start()`
+#### `stacker_service_start()`
 Start a Manager service.
 
-**Usage**: `manager_service_start [service_name]`
+**Usage**: `stacker_service_start [service_name]`
 
 **Returns**: 0 on success, 1 on failure
 
 ---
 
-#### `manager_service_stop()`
+#### `stacker_service_stop()`
 Stop a Manager service.
 
-**Usage**: `manager_service_stop [service_name]`
+**Usage**: `stacker_service_stop [service_name]`
 
 **Returns**: 0 on success, 1 on failure
 
 ---
 
-#### `manager_service_status()`
+#### `stacker_service_status()`
 Get service status.
 
-**Usage**: `manager_service_status [service_name]`
+**Usage**: `stacker_service_status [service_name]`
 
 **Returns**: Service status string
 
@@ -140,10 +140,10 @@ Get service status.
 
 ### Installation Functions
 
-#### `manager_install()`
+#### `stacker_install()`
 Install a Manager-based application.
 
-**Usage**: `manager_install [options]`
+**Usage**: `stacker_install [options]`
 
 **Options**:
 - `--systemd`: Install as systemd service
@@ -154,10 +154,10 @@ Install a Manager-based application.
 
 ---
 
-#### `manager_uninstall()`
+#### `stacker_uninstall()`
 Uninstall a Manager-based application.
 
-**Usage**: `manager_uninstall [options]`
+**Usage**: `stacker_uninstall [options]`
 
 **Returns**: 0 on success, 1 on failure
 
@@ -165,19 +165,19 @@ Uninstall a Manager-based application.
 
 ### Update Functions
 
-#### `manager_update_check()`
+#### `stacker_update_check()`
 Check for available updates.
 
-**Usage**: `manager_update_check`
+**Usage**: `stacker_update_check`
 
 **Returns**: 0 if update available, 1 if current
 
 ---
 
-#### `manager_update_apply()`
+#### `stacker_update_apply()`
 Apply available updates.
 
-**Usage**: `manager_update_apply [version]`
+**Usage**: `stacker_update_apply [version]`
 
 **Parameters**:
 - `version`: Optional specific version
@@ -186,10 +186,10 @@ Apply available updates.
 
 ---
 
-#### `manager_rollback()`
+#### `stacker_rollback()`
 Rollback to previous version.
 
-**Usage**: `manager_rollback [version]`
+**Usage**: `stacker_rollback [version]`
 
 **Returns**: 0 on success, 1 on failure
 
@@ -202,9 +202,9 @@ Rollback to previous version.
 Modules must export these variables:
 
 ```bash
-MANAGER_MODULE_NAME="module-name"
-MANAGER_MODULE_VERSION="1.0.0"
-MANAGER_MODULE_DESCRIPTION="Module description"
+STACKER_MODULE_NAME="module-name"
+STACKER_MODULE_VERSION="1.0.0"
+STACKER_MODULE_DESCRIPTION="Module description"
 ```
 
 ### Module Lifecycle
@@ -261,32 +261,32 @@ module_verify() {
 
 ### Core Variables
 
-#### MANAGER_CONFIG_DIR
+#### STACKER_CONFIG_DIR
 Override default config directory
 
-**Default**: `$HOME/.config/manager`
+**Default**: `$HOME/.config/stacker`
 
-#### MANAGER_DATA_DIR
+#### STACKER_DATA_DIR
 Override default data directory
 
-**Default**: `$HOME/.local/share/manager`
+**Default**: `$HOME/.local/share/stacker`
 
-#### MANAGER_LOG_LEVEL
+#### STACKER_LOG_LEVEL
 Logging level (debug, info, warn, error)
 
 **Default**: `info`
 
-#### MANAGER_UPDATE_CHANNEL
+#### STACKER_UPDATE_CHANNEL
 Update channel (stable, beta, nightly)
 
 **Default**: `stable`
 
-#### MANAGER_AUTO_UPDATE
+#### STACKER_AUTO_UPDATE
 Enable automatic updates
 
 **Default**: `false`
 
-#### MANAGER_PREFIX
+#### STACKER_PREFIX
 Installation prefix
 
 **Default**: `/usr/local`
@@ -296,9 +296,9 @@ Installation prefix
 
 Modules can access these variables:
 
-- `MANAGER_MODULE_PATH`: Module search path
-- `MANAGER_MODULE_CACHE`: Module cache directory
-- `MANAGER_MODULE_REGISTRY`: Module registry file
+- `STACKER_MODULE_PATH`: Module search path
+- `STACKER_MODULE_CACHE`: Module cache directory
+- `STACKER_MODULE_REGISTRY`: Module registry file
 
 ## Exit Codes
 
@@ -317,7 +317,7 @@ Modules can access these variables:
 
 ## Shell Compatibility
 
-Manager is tested with:
+Stacker is tested with:
 
 - `/bin/sh` (POSIX shell)
 - `dash` (Debian Almquist shell)
@@ -331,15 +331,15 @@ Manager is tested with:
 
 ```bash
 #!/bin/sh
-# Load Manager framework
-. /usr/local/lib/manager/manager-core.sh
+# Load Stacker framework
+. /usr/local/lib/stacker/stacker-core.sh
 
 # Initialize
-manager_init || exit 1
+stacker_init || exit 1
 
 # Use framework functions
-manager_log "info" "Application starting"
-config_value=$(manager_config_get "app.setting" "default")
+stacker_log "info" "Application starting"
+config_value=$(stacker_config_get "app.setting" "default")
 ```
 
 ### Creating a Service
@@ -349,20 +349,20 @@ config_value=$(manager_config_get "app.setting" "default")
 # My Service using Manager
 
 # Load Manager
-. /usr/local/lib/manager/manager-core.sh
-manager_init || exit 1
+. /usr/local/lib/stacker/stacker-core.sh
+stacker_init || exit 1
 
 # Service logic
 service_run() {
     while true; do
-        manager_log "info" "Service running"
+        stacker_log "info" "Service running"
         # Do work here
         sleep 60
     done
 }
 
 # Start service
-manager_service_start "my-service"
+stacker_service_start "my-service"
 service_run
 ```
 
@@ -370,16 +370,16 @@ service_run
 
 ```bash
 #!/bin/sh
-# Custom Manager module
+# Custom Stacker module
 
 # Module metadata
-MANAGER_MODULE_NAME="custom"
-MANAGER_MODULE_VERSION="1.0.0"
-MANAGER_MODULE_DESCRIPTION="Custom module"
+STACKER_MODULE_NAME="custom"
+STACKER_MODULE_VERSION="1.0.0"
+STACKER_MODULE_DESCRIPTION="Custom module"
 
 # Module initialization
 module_init() {
-    manager_log "debug" "Custom module initialized"
+    stacker_log "debug" "Custom module initialized"
     return 0
 }
 
@@ -390,13 +390,13 @@ custom_function() {
 
 # Module cleanup
 module_cleanup() {
-    manager_log "debug" "Custom module cleaned up"
+    stacker_log "debug" "Custom module cleaned up"
     return 0
 }
 ```
 
 ---
 
-*@akaoio/manager API Reference*
+*@akaoio/stacker API Reference*
 
 *Version 2.0.0 | License: MIT*

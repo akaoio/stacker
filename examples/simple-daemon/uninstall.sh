@@ -3,19 +3,19 @@
 
 set -e
 
-# Manager framework setup
-MANAGER_DIR="$(dirname "$0")/../../"
-. "$MANAGER_DIR/manager.sh"
+# Stacker framework setup
+STACKER_DIR="$(dirname "$0")/../../"
+. "$STACKER_DIR/stacker.sh"
 
 # Display header
 echo "=================================================="
 echo "  Simple Daemon - Uninstallation"
-echo "  Using @akaoio/manager framework"
+echo "  Using @akaoio/stacker framework"
 echo "=================================================="
 echo ""
 
 # Initialize manager for this technology
-manager_init "simple-daemon" \
+stacker_init "simple-daemon" \
              "https://github.com/example/simple-daemon.git" \
              "simple-daemon.sh" \
              "Example daemon service"
@@ -84,7 +84,7 @@ case "$confirm" in
 esac
 
 echo ""
-manager_log "Starting uninstallation..."
+stacker_log "Starting uninstallation..."
 
 # Stop daemon if it's running
 if [ -x "/usr/local/bin/simple-daemon" ]; then
@@ -92,7 +92,7 @@ if [ -x "/usr/local/bin/simple-daemon" ]; then
 fi
 
 # Run uninstallation
-manager_uninstall $UNINSTALL_ARGS
+stacker_uninstall $UNINSTALL_ARGS
 
 echo ""
 echo "=================================================="

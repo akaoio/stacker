@@ -3,19 +3,19 @@
 
 set -e
 
-# Manager framework setup
-MANAGER_DIR="$(dirname "$0")/../../"
-. "$MANAGER_DIR/manager.sh"
+# Stacker framework setup
+STACKER_DIR="$(dirname "$0")/../../"
+. "$STACKER_DIR/stacker.sh"
 
 # Display header
 echo "=================================================="
 echo "  Simple Daemon - Example Installation"
-echo "  Using @akaoio/manager framework"
+echo "  Using @akaoio/stacker framework"
 echo "=================================================="
 echo ""
 
 # Initialize manager for this technology
-manager_init "simple-daemon" \
+stacker_init "simple-daemon" \
              "https://github.com/example/simple-daemon.git" \
              "simple-daemon.sh" \
              "Example daemon service"
@@ -88,8 +88,8 @@ if [ "$USE_SERVICE" = false ] && [ "$USE_CRON" = false ]; then
 fi
 
 # Run installation
-manager_log "Starting installation with options:$INSTALL_ARGS"
-manager_install $INSTALL_ARGS
+stacker_log "Starting installation with options:$INSTALL_ARGS"
+stacker_install $INSTALL_ARGS
 
 # Show completion message
 echo ""
@@ -104,4 +104,4 @@ echo "  simple-daemon stop      # Stop daemon manually"
 echo ""
 
 # Show service status
-manager_status
+stacker_status
