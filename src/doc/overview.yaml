@@ -73,7 +73,7 @@ features:
     description: "Smart function detection that automatically loads required modules based on function calls"
   
   - name: "Interactive CLI Interface"
-    description: "Complete command-line interface with interactive mode, comprehensive help system, and argument parsing"
+    description: "Complete command-line interface with interactive mode, comprehensive help system, short aliases, and intelligent argument parsing"
   
   - name: "XDG Compliance"
     description: "Full XDG Base Directory specification compliance for configuration and data storage"

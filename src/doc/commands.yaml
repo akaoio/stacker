@@ -2,12 +2,13 @@ commands:
   main:
     name: "manager"
     description: "Universal POSIX shell framework for system management"
-    usage: "manager [command] [options]"
+    usage: "./manager.sh [COMMAND] [OPTIONS]"
     
   subcommands:
-    - name: "init"
+    - name: "init, -i"
       description: "Initialize Manager framework in current directory"
       usage: "manager init [OPTIONS]"
+      aliases: ["init", "-i"]
       options:
         - flag: "--template, -t"
           description: "Project template (service, cli, library)"
@@ -24,9 +25,10 @@ commands:
         - command: "manager init --template=cli --name=mytool"
           description: "Initialize CLI application template"
     
-    - name: "config"
+    - name: "config, -c"
       description: "Manage configuration settings"
       usage: "manager config [get|set|list] [key] [value]"
+      aliases: ["config", "-c"]
       examples:
         - command: "manager config list"
           description: "List all configuration settings"
@@ -57,9 +59,10 @@ commands:
         - command: "manager install --cron --interval=300"
           description: "Install with 5-minute cron schedule"
     
-    - name: "update"
+    - name: "update, -u"
       description: "Update Manager-based application"
       usage: "manager update [--check|--force]"
+      aliases: ["update", "-u"]
       options:
         - flag: "--check"
           description: "Check for updates without installing"
@@ -73,9 +76,10 @@ commands:
         - command: "manager update"
           description: "Perform update if available"
     
-    - name: "service"
+    - name: "service, -s"
       description: "Control Manager service"
       usage: "manager service [start|stop|restart|status|enable|disable]"
+      aliases: ["service", "-s"]
       examples:
         - command: "manager service start"
           description: "Start the service"
@@ -96,9 +100,17 @@ commands:
         - command: "manager health --verbose"
           description: "Detailed system diagnostics"
     
-    - name: "rollback"
+    - name: "status"
+      description: "Show current status of Manager-based application"
+      usage: "manager status"
+      examples:
+        - command: "manager status"
+          description: "Display installation and service status"
+    
+    - name: "rollback, -r"
       description: "Rollback to previous version"
       usage: "manager rollback [version]"
+      aliases: ["rollback", "-r"]
       examples:
         - command: "manager rollback"
           description: "Rollback to previous version"
@@ -120,16 +132,18 @@ commands:
         - command: "manager self-update"
           description: "Update Manager framework"
     
-    - name: "version"
+    - name: "version, -v"
       description: "Show version information"
       usage: "manager version [--json]"
+      aliases: ["version", "-v"]
       options:
         - flag: "--json"
           description: "Output in JSON format"
     
-    - name: "help"
+    - name: "help, -h"
       description: "Show help information"
       usage: "manager help [command]"
+      aliases: ["help", "-h"]
       examples:
         - command: "manager help"
           description: "Show general help"

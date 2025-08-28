@@ -38,7 +38,7 @@ Built to last forever - when languages come and go, Manager remains
 - **Modular Architecture**: Clean separation of concerns with independent, reusable modules that load only when needed
 - **Module Registry System**: Comprehensive module tracking, dependency management, and initialization lifecycle
 - **Auto-Loading Intelligence**: Smart function detection that automatically loads required modules based on function calls
-- **Interactive CLI Interface**: Complete command-line interface with interactive mode, comprehensive help system, and argument parsing
+- **Interactive CLI Interface**: Complete command-line interface with interactive mode, comprehensive help system, short aliases, and intelligent argument parsing
 - **XDG Compliance**: Full XDG Base Directory specification compliance for configuration and data storage
 - **Multi-Platform Support**: Works on Linux, BSD, macOS, and any POSIX-compliant system
 - **Service Integration**: Native integration with systemd, init.d, launchd, and cron
@@ -80,7 +80,7 @@ manager update
 
 ## Commands
 
-### `init`
+### `init, -i`
 Initialize Manager framework in current directory
 
 **Usage**: `manager init [OPTIONS]`
@@ -95,7 +95,7 @@ Initialize Manager framework in current directory
 - `manager init` - Initialize with interactive prompts
 - `manager init --template&#x3D;cli --name&#x3D;mytool` - Initialize CLI application template
 
-### `config`
+### `config, -c`
 Manage configuration settings
 
 **Usage**: `manager config [get|set|list] [key] [value]`
@@ -123,7 +123,7 @@ Install Manager-based application
 - `manager install --systemd` - Install as system service
 - `manager install --cron --interval&#x3D;300` - Install with 5-minute cron schedule
 
-### `update`
+### `update, -u`
 Update Manager-based application
 
 **Usage**: `manager update [--check|--force]`
@@ -137,7 +137,7 @@ Update Manager-based application
 - `manager update --check` - Check for available updates
 - `manager update` - Perform update if available
 
-### `service`
+### `service, -s`
 Control Manager service
 
 **Usage**: `manager service [start|stop|restart|status|enable|disable]`
@@ -160,7 +160,16 @@ Check system health and diagnostics
 - `manager health` - Quick health check
 - `manager health --verbose` - Detailed system diagnostics
 
-### `rollback`
+### `status`
+Show current status of Manager-based application
+
+**Usage**: `manager status`
+
+
+**Examples**:
+- `manager status` - Display installation and service status
+
+### `rollback, -r`
 Rollback to previous version
 
 **Usage**: `manager rollback [version]`
@@ -183,7 +192,7 @@ Update Manager framework itself
 - `manager self-update --check` - Check for Manager updates
 - `manager self-update` - Update Manager framework
 
-### `version`
+### `version, -v`
 Show version information
 
 **Usage**: `manager version [--json]`
@@ -192,7 +201,7 @@ Show version information
 - `--json`: Output in JSON format
 
 
-### `help`
+### `help, -h`
 Show help information
 
 **Usage**: `manager help [command]`

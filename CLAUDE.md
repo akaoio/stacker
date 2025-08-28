@@ -86,7 +86,7 @@ Comprehensive module tracking, dependency management, and initialization lifecyc
 Smart function detection that automatically loads required modules based on function calls
 
 ### Interactive CLI Interface
-Complete command-line interface with interactive mode, comprehensive help system, and argument parsing
+Complete command-line interface with interactive mode, comprehensive help system, short aliases, and intelligent argument parsing
 
 ### XDG Compliance
 Full XDG Base Directory specification compliance for configuration and data storage
@@ -118,6 +118,7 @@ manager install [--systemd|--cron|--manual] [options]  # Install Manager-based a
 manager update [--check|--force]  # Update Manager-based application
 manager service [start|stop|restart|status|enable|disable]  # Control Manager service
 manager health [--verbose]  # Check system health and diagnostics
+manager status  # Show current status of Manager-based application
 manager rollback [version]  # Rollback to previous version
 manager self-update [--check]  # Update Manager framework itself
 manager version [--json]  # Show version information
@@ -126,7 +127,7 @@ manager help [command]  # Show help information
 
 ### Detailed Command Reference
 
-#### `init` Command
+#### `init, -i` Command
 **Purpose**: Initialize Manager framework in current directory  
 **Usage**: `manager init [OPTIONS]`
 
@@ -142,7 +143,7 @@ manager init  # Initialize with interactive prompts
 manager init --template&#x3D;cli --name&#x3D;mytool  # Initialize CLI application template
 ```
 
-#### `config` Command
+#### `config, -c` Command
 **Purpose**: Manage configuration settings  
 **Usage**: `manager config [get|set|list] [key] [value]`
 
@@ -172,7 +173,7 @@ manager install --systemd  # Install as system service
 manager install --cron --interval&#x3D;300  # Install with 5-minute cron schedule
 ```
 
-#### `update` Command
+#### `update, -u` Command
 **Purpose**: Update Manager-based application  
 **Usage**: `manager update [--check|--force]`
 
@@ -187,7 +188,7 @@ manager update --check  # Check for available updates
 manager update  # Perform update if available
 ```
 
-#### `service` Command
+#### `service, -s` Command
 **Purpose**: Control Manager service  
 **Usage**: `manager service [start|stop|restart|status|enable|disable]`
 
@@ -212,7 +213,17 @@ manager health  # Quick health check
 manager health --verbose  # Detailed system diagnostics
 ```
 
-#### `rollback` Command
+#### `status` Command
+**Purpose**: Show current status of Manager-based application  
+**Usage**: `manager status`
+
+
+**Examples**:
+```bash
+manager status  # Display installation and service status
+```
+
+#### `rollback, -r` Command
 **Purpose**: Rollback to previous version  
 **Usage**: `manager rollback [version]`
 
@@ -237,7 +248,7 @@ manager self-update --check  # Check for Manager updates
 manager self-update  # Update Manager framework
 ```
 
-#### `version` Command
+#### `version, -v` Command
 **Purpose**: Show version information  
 **Usage**: `manager version [--json]`
 
@@ -245,7 +256,7 @@ manager self-update  # Update Manager framework
 - `--json`: Output in JSON format
 
 
-#### `help` Command
+#### `help, -h` Command
 **Purpose**: Show help information  
 **Usage**: `manager help [command]`
 
