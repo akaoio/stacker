@@ -25,7 +25,7 @@ core_principles:
     critical: true
 
 architecture:
-  overview: "Manager is a comprehensive shell framework that provides standardized patterns for system management, configuration, installation, updates, and service orchestration."
+  overview: "Manager is a comprehensive shell framework that provides standardized patterns for system management, configuration, installation, updates, and service orchestration. Version 2.0.0 features a complete CLI interface with interactive commands and comprehensive help system."
   
   components:
     - name: "Core Module (manager-core.sh)"
@@ -48,9 +48,9 @@ architecture:
       description: "Service lifecycle management for systemd, init.d, and standalone daemons"
       responsibility: "Unified service control interface"
     
-    - name: "CLI Module (manager-cli.sh)"
-      description: "Command-line interface with subcommand routing and argument parsing"
-      responsibility: "User interaction and command processing"
+    - name: "CLI Interface (integrated)"
+      description: "Complete command-line interface with interactive commands, argument parsing, and comprehensive help system"
+      responsibility: "Direct CLI execution, user interaction, and command processing with full subcommand support"
     
     - name: "Self-Update Module (manager-self-update.sh)"
       description: "Auto-update capability with integrity verification and atomic updates"
@@ -71,6 +71,9 @@ features:
   
   - name: "Auto-Loading Intelligence"
     description: "Smart function detection that automatically loads required modules based on function calls"
+  
+  - name: "Interactive CLI Interface"
+    description: "Complete command-line interface with interactive mode, comprehensive help system, and argument parsing"
   
   - name: "XDG Compliance"
     description: "Full XDG Base Directory specification compliance for configuration and data storage"

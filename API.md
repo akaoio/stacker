@@ -261,42 +261,35 @@ module_verify() {
 
 ### Core Variables
 
-
 #### MANAGER_CONFIG_DIR
 Override default config directory
 
 **Default**: `$HOME/.config/manager`
-
 
 #### MANAGER_DATA_DIR
 Override default data directory
 
 **Default**: `$HOME/.local/share/manager`
 
-
 #### MANAGER_LOG_LEVEL
 Logging level (debug, info, warn, error)
 
 **Default**: `info`
-
 
 #### MANAGER_UPDATE_CHANNEL
 Update channel (stable, beta, nightly)
 
 **Default**: `stable`
 
-
 #### MANAGER_AUTO_UPDATE
 Enable automatic updates
 
 **Default**: `false`
 
-
 #### MANAGER_PREFIX
 Installation prefix
 
 **Default**: `/usr/local`
-
 
 
 ### Module Variables
