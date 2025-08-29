@@ -16,16 +16,16 @@
     "stacker": "./stacker.sh"
   },
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
-    "test": "./tests/run-tests.sh",
+    "build": "akao-build",
+    "dev": "akao-build --watch", 
+    "test": "tsx test/index.ts",
     "test:shell": "./tests/run-tests.sh",
-    "test:typescript": "npx tsx tests/typescript/api.test.ts || true",
+    "test:typescript": "tsx test/battle-integration.test.ts",
     "test:integration": "./tests/run-tests.sh",
-    "test:ci": "./tests/run-tests.sh",
+    "test:ci": "npm run build && npm test",
     "test:legacy": "./tests/run-tests.sh",
     "docs": "composer generate",
-    "clean": "rm -rf dist/ tests/results/ logs/",
+    "clean": "rm -rf dist/ tests/results/ logs/ tmp/",
     "prepublish": "npm run build && npm run test:ci"
   },
   "keywords": [
@@ -44,6 +44,8 @@
     "url": "https://github.com/akaoio/stacker.git"
   },
   "devDependencies": {
+    "@akaoio/battle": "^1.2.3",
+    "@akaoio/builder": "*",
     "@types/node": "^20.0.0",
     "typescript": "^5.0.0",
     "tsx": "^4.0.0"

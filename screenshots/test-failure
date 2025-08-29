@@ -1,0 +1,25 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { 
+            background: #000; 
+            color: #fff; 
+            font-family: 'Courier New', monospace;
+            white-space: pre;
+            padding: 20px;
+        }
+        .ansi-black { color: #000; }
+        .ansi-red { color: #f00; }
+        .ansi-green { color: #0f0; }
+        .ansi-yellow { color: #ff0; }
+        .ansi-blue { color: #00f; }
+        .ansi-magenta { color: #f0f; }
+        .ansi-cyan { color: #0ff; }
+        .ansi-white { color: #fff; }
+    </style>
+</head>
+<body>Stacker Framework v0.0.2 (Modular)<br>Universal POSIX Shell Framework for AKAO Technologies<br><br>Loaded modules:  core<br>Available modules:<br>Available modules:<br>  cli<br>  config<br>  core<br>  install<br>  package<br>  self<br>  service<br>  update<br>  loader (legacy)<br></body>
+</html>

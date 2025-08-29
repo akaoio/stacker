@@ -12,12 +12,11 @@ function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 var fs__default = /*#__PURE__*/_interopDefault(fs);
 var path__default = /*#__PURE__*/_interopDefault(path);
 
-// ../../node_modules/tsup/assets/cjs_shims.js
 var getImportMetaUrl = () => typeof document === "undefined" ? new URL(`file:${__filename}`).href : document.currentScript && document.currentScript.src || new URL("main.js", document.baseURI).href;
 var importMetaUrl = /* @__PURE__ */ getImportMetaUrl();
-var __filename2 = url.fileURLToPath(importMetaUrl);
-var __dirname$1 = path__default.default.dirname(__filename2);
-var Stacker = class _Stacker {
+const __filename2 = url.fileURLToPath(importMetaUrl);
+const __dirname$1 = path__default.default.dirname(__filename2);
+class Stacker {
   stackerPath;
   initialized = false;
   loadedModules = [];
@@ -221,7 +220,7 @@ var Stacker = class _Stacker {
    * Static helper: Check if Stacker is available
    */
   static isAvailable() {
-    const instance = new _Stacker();
+    const instance = new Stacker();
     return Boolean(instance.stackerPath);
   }
   /**
@@ -229,13 +228,13 @@ var Stacker = class _Stacker {
    */
   static async getVersion() {
     if (!this.isAvailable()) return "not installed";
-    const instance = new _Stacker();
+    const instance = new Stacker();
     return await instance.version();
   }
-};
+}
 var index_default = Stacker;
-var stacker = new Stacker();
-var StackerUtils = {
+const stacker = new Stacker();
+const StackerUtils = {
   /**
    * Quick health check
    */

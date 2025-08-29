@@ -135,7 +135,7 @@ echo ""
 echo "${BLUE}🔍 Testing performance across shells...${NC}"
 
 for shell in $TEST_SHELLS; do
-    battle_test "Fast startup time" "$shell" "time ./stacker.sh version"
+    battle_test "Fast startup time" "$shell" "./stacker.sh version >/dev/null"
     battle_test "Memory efficiency" "$shell" "./stacker.sh version"
 done
 

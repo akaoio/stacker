@@ -3,10 +3,9 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-// src/index.ts
-var __filename = fileURLToPath(import.meta.url);
-var __dirname = path.dirname(__filename);
-var Stacker = class _Stacker {
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+class Stacker {
   stackerPath;
   initialized = false;
   loadedModules = [];
@@ -210,7 +209,7 @@ var Stacker = class _Stacker {
    * Static helper: Check if Stacker is available
    */
   static isAvailable() {
-    const instance = new _Stacker();
+    const instance = new Stacker();
     return Boolean(instance.stackerPath);
   }
   /**
@@ -218,13 +217,13 @@ var Stacker = class _Stacker {
    */
   static async getVersion() {
     if (!this.isAvailable()) return "not installed";
-    const instance = new _Stacker();
+    const instance = new Stacker();
     return await instance.version();
   }
-};
+}
 var index_default = Stacker;
-var stacker = new Stacker();
-var StackerUtils = {
+const stacker = new Stacker();
+const StackerUtils = {
   /**
    * Quick health check
    */

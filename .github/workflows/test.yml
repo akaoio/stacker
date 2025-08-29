@@ -42,8 +42,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          # Install dependencies (no package-lock.json yet)
-          npm install
+          # Install dependencies
+          npm ci || npm install
 
       - name: Build TypeScript components
         run: |
@@ -157,7 +157,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Build project
         run: npm run build
@@ -207,8 +207,8 @@ jobs:
 
       - name: Run hybrid integration tests
         run: |
-          # Run Battle integration tests specifically
-          npx battle test --pattern="tests/integration/**/*.test.{ts,js,sh}" --verbose
+          # Run comprehensive test suite (includes Battle integration)
+          npm run test:ci
 
   # Package and publish readiness
   test-package:
@@ -226,12 +226,11 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Build for packaging
         run: |
           npm run build
-          npm run docs  # Generate documentation
 
       - name: Test package creation
         run: |
@@ -239,10 +238,13 @@ jobs:
           npm pack
           
           # Verify package contains required files
-          tar -tzf akaoio-stacker-*.tgz | grep -E "(dist/|stacker\.sh|modules/)" || {
+          PKG_FILE=$(ls akaoio-stacker-*.tgz | head -1)
+          if tar -tzf "$PKG_FILE" | grep -E "(dist/|stacker\.sh|modules/)"; then
+            echo "✅ Package contains required files"
+          else
             echo "❌ Package missing required files"
             exit 1
-          }
+          fi
           
           echo "✅ Package validation successful"
 
