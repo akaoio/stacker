@@ -43,8 +43,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          # Install dependencies
-          npm ci || npm install
+          # Install dependencies (no package-lock.json yet)
+          npm install
 
       - name: Build TypeScript components
         run: |
