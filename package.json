@@ -46,7 +46,7 @@
   "devDependencies": {
     "@akaoio/battle": "^1.2.3",
     "@akaoio/builder": "*",
-    "@types/node": "^20.0.0",
+    "@types/node": "^20.19.11",
     "typescript": "^5.0.0",
     "tsx": "^4.0.0"
   },
@@ -60,7 +60,7 @@
     "CLAUDE.md"
   ],
   "engines": {
-    "node": ">=16"
+    "node": ">=18.0.0"
   },
   "publishConfig": {
     "access": "public"

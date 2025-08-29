@@ -38,7 +38,7 @@ class Stacker {
       // Global installation
       path__default.default.join(process.env.HOME || "", ".local", "bin", "stacker"),
       // System installation
-      "/usr/local/bin/stacker"
+      `${process.env.STACKER_PREFIX || "/usr/local"}/bin/stacker`
     ];
     for (const stackerPath of possiblePaths) {
       if (fs__default.default.existsSync(stackerPath)) {
