@@ -16,8 +16,8 @@
     "stacker": "./stacker.sh"
   },
   "scripts": {
-    "build": "akao-build",
-    "dev": "akao-build --watch",
+    "build": "tsc",
+    "dev": "tsc --watch",
     "test": "./tests/run-tests.sh",
     "test:shell": "./tests/run-tests.sh",
     "test:typescript": "npx tsx tests/typescript/api.test.ts || true",
@@ -44,11 +44,9 @@
     "url": "https://github.com/akaoio/stacker.git"
   },
   "devDependencies": {
-    "@akaoio/builder": "*",
-    "@akaoio/composer": "*",
-    "@akaoio/battle": "*",
     "@types/node": "^20.0.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "tsx": "^4.0.0"
   },
   "files": [
     "dist/",
