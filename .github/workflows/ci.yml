@@ -1,0 +1,171 @@
+name: Stacker CI/CD - Universal POSIX Framework
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  shell-tests:
+    name: Shell Tests  
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        shell: [bash, sh]
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install shell interpreters
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y dash busybox-static
+
+      - name: Test shell compatibility
+        run: |
+          echo "🐚 Testing Stacker with ${{ matrix.shell }}..."
+          ${{ matrix.shell }} -n stacker.sh
+          echo "✅ Syntax check passed"
+
+      - name: Test basic functionality
+        run: |
+          echo "🧪 Testing basic Stacker functionality..."
+          ${{ matrix.shell }} stacker.sh help
+          ${{ matrix.shell }} stacker.sh version
+
+  build-and-battle-tests:
+    name: Build and Battle Tests
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        runtime: ['node', 'bun']
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        if: matrix.runtime == 'node'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup Bun
+        if: matrix.runtime == 'bun'
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: |
+          if [ "${{ matrix.runtime }}" = "bun" ]; then
+            bun install
+          else
+            npm install
+          fi
+
+      - name: Build Stacker
+        run: |
+          echo "🔨 Building Stacker framework..."
+          if [ "${{ matrix.runtime }}" = "bun" ]; then
+            bun run build
+          else
+            npm run build
+          fi
+
+      - name: Verify build artifacts
+        run: |
+          # Check TypeScript build outputs
+          if [ ! -f "dist/index.js" ] && [ ! -f "dist/index.cjs" ]; then
+            echo "❌ TypeScript build artifacts missing"
+            exit 1
+          fi
+          
+          # Check shell scripts
+          if [ ! -f "stacker.sh" ] || [ ! -x "stacker.sh" ]; then
+            echo "❌ Main shell script missing or not executable"
+            exit 1
+          fi
+          
+          echo "✅ Build artifacts verified"
+
+      - name: Run Battle tests
+        run: |
+          echo "⚔️ Running Stacker Battle tests..."
+          if [ "${{ matrix.runtime }}" = "bun" ]; then
+            bun test/index.ts
+          else
+            npm test
+          fi
+
+  publish:
+    name: Publish Release
+    runs-on: ubuntu-latest
+    needs: [shell-tests, build-and-battle-tests]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build for production
+        run: npm run build
+
+      - name: Create release package
+        run: |
+          mkdir -p release
+          cp -r dist/ release/
+          cp stacker.sh release/
+          cp stacker-loader.sh release/
+          cp -r modules/ release/
+          cp package.json release/
+          cp README.md release/
+          cp LICENSE release/
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: stacker-release
+          path: release/
+          retention-days: 30
+
+  notify:
+    name: Notification
+    runs-on: ubuntu-latest
+    needs: [shell-tests, build-and-battle-tests]
+    if: always()
+    
+    steps:
+      - name: Success notification
+        if: needs.build-and-battle-tests.result == 'success' && needs.shell-tests.result == 'success'
+        run: |
+          echo "🎉 Stacker CI/CD pipeline completed successfully!"
+          echo "✅ Multi-shell compatibility verified"
+          echo "✅ Battle framework tests passed"
+          echo "✅ Builder integration verified"
+          echo "✅ Universal POSIX framework ready"
+
+      - name: Failure notification
+        if: needs.build-and-battle-tests.result == 'failure' || needs.shell-tests.result == 'failure'
+        run: |
+          echo "❌ Stacker CI/CD pipeline failed!"
+          exit 1
