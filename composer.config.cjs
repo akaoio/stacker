@@ -3,7 +3,7 @@
  * Documentation generation for hybrid shell+TypeScript framework
  */
 
-export default {
+module.exports = {
   // Project metadata
   name: "@akaoio/stacker",
   version: "0.0.2",

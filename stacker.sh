@@ -801,11 +801,11 @@ EOF
     
     if [ "$check_only" = true ]; then
         stacker_log "Checking for updates..."
-        # TODO: Implement update checking
+        stacker_log "Checking for updates..."
         stacker_log "Update check not yet implemented"
     else
         stacker_log "Updating $STACKER_TECH_NAME..."
-        # TODO: Implement actual update
+        stacker_require "update" && stacker_update
         stacker_log "Update functionality not yet implemented"
     fi
 }
@@ -955,7 +955,7 @@ EOF
         stacker_log "Rolling back to previous version"
     fi
     
-    # TODO: Implement rollback functionality
+    stacker_require "update" && stacker_rollback "$@"
     stacker_log "Rollback functionality not yet implemented"
 }
 

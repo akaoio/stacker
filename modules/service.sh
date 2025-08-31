@@ -59,7 +59,8 @@ Wants=network-online.target
 StartLimitIntervalSec=0
 
 [Service]
-Type=simple
+Type=\${STACKER_SERVICE_TYPE:-simple}
+\${STACKER_PID_FILE:+PIDFile=$STACKER_PID_FILE}
 User=$user
 Environment="HOME=$user_home"
 Environment="XDG_CONFIG_HOME=$user_home/.config"
@@ -129,7 +130,8 @@ After=network.target
 StartLimitIntervalSec=0
 
 [Service]
-Type=simple
+Type=\${STACKER_SERVICE_TYPE:-simple}
+\${STACKER_PID_FILE:+PIDFile=$STACKER_PID_FILE}
 Environment="HOME=$user_home"
 Environment="XDG_CONFIG_HOME=$user_home/.config"
 Environment="XDG_DATA_HOME=$user_home/.local/share"
@@ -341,4 +343,27 @@ service_list_functions() {
     echo "stacker_setup_cron_job stacker_remove_cron_job"
     echo "stacker_start_service stacker_stop_service stacker_restart_service stacker_service_status"
     echo "stacker_enable_service stacker_disable_service"
+}
+
+# Enhanced service setup with watchdog integration
+stacker_setup_service_with_watchdog() {
+    local watchdog_timeout="${1:-60}"
+    
+    # Setup base service first
+    stacker_setup_systemd_service || return 1
+    
+    # Load watchdog module if available
+    if [ -f "$(dirname "$0")/watchdog.sh" ]; then
+        . "$(dirname "$0")/watchdog.sh"
+        watchdog_init
+        
+        # Setup watchdog integration
+        stacker_setup_systemd_watchdog "$watchdog_timeout" || {
+            stacker_warn "Watchdog setup failed - service will run without hardware watchdog"
+        }
+    else
+        stacker_debug "Watchdog module not available - skipping watchdog integration"
+    fi
+    
+    return 0
 }
