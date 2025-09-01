@@ -497,6 +497,101 @@ EOF
     esac
 }
 
+# Daemon management CLI functions
+stacker_cli_daemon() {
+    local target="$1"
+    local action="$2"
+    
+    if [ -z "$target" ] || [ -z "$action" ]; then
+        cat << 'EOF'
+Usage: stacker daemon <package> <command>
+
+Manage package daemons
+
+Commands:
+  install               Install package as background daemon
+  uninstall             Remove daemon setup
+  start                 Start the daemon
+  stop                  Stop the daemon
+  restart               Restart the daemon
+  status                Show daemon status
+
+Examples:
+  stacker daemon redis install
+  stacker daemon redis start
+  stacker daemon redis status
+EOF
+        return 1
+    fi
+    
+    case "$action" in
+        install)
+            echo "Installing $target as daemon..."
+            stacker_require "package" || return 1
+            stacker_cli_add "$target" --daemon
+            ;;
+        uninstall)
+            echo "Removing $target daemon setup..."
+            # TODO: Implement daemon removal
+            ;;
+        start|stop|restart|status)
+            echo "Managing $target daemon: $action"
+            # TODO: Implement daemon control
+            ;;
+        *)
+            echo "Unknown daemon command: $action"
+            return 1
+            ;;
+    esac
+}
+
+# Watchdog management CLI functions  
+stacker_cli_watchdog() {
+    local target="$1"
+    local action="$2"
+    
+    if [ -z "$target" ] || [ -z "$action" ]; then
+        cat << 'EOF'
+Usage: stacker watchdog <package> <command>
+
+Manage package watchdogs
+
+Commands:
+  install               Install package with health monitoring
+  uninstall             Remove watchdog setup
+  start                 Start the watchdog
+  stop                  Stop the watchdog
+  status                Show watchdog status
+
+Examples:
+  stacker watchdog nginx install
+  stacker watchdog nginx start
+  stacker watchdog nginx status
+EOF
+        return 1
+    fi
+    
+    case "$action" in
+        install)
+            echo "Installing $target with watchdog..."
+            stacker_require "package" || return 1
+            stacker_cli_add "$target" --watchdog
+            ;;
+        uninstall)
+            echo "Removing $target watchdog setup..."
+            # TODO: Implement watchdog removal
+            ;;
+        start|stop|restart|status)
+            echo "Managing $target watchdog: $action"
+            # TODO: Implement watchdog control
+            ;;
+        *)
+            echo "Unknown watchdog command: $action"
+            return 1
+            ;;
+    esac
+}
+
 # Package management CLI functions
 stacker_cli_add() {
     local url="$1"

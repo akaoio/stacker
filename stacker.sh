@@ -76,6 +76,14 @@ stacker_parse_cli() {
             shift
             stacker_smart_call stacker_cli_service "$@"
             ;;
+        daemon)
+            shift
+            stacker_smart_call stacker_cli_daemon "$@"
+            ;;
+        watchdog)
+            shift
+            stacker_smart_call stacker_cli_watchdog "$@"
+            ;;
         rollback|-r)
             shift
             stacker_smart_call stacker_cli_rollback "$@"

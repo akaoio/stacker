@@ -8,59 +8,102 @@ STACKER_MODULE_VERSION="1.0.0"
 
 # Update command - updates the application
 stacker_cli_update() {
-    stacker_require "config" || return 1
+    local target="$1"
     
-    local check_only=false
-    local force=false
-    local rollback=false
-    
-    # Parse common arguments first
-    stacker_parse_common_args "update" "$@" || return $?
-    
-    # Parse command-specific arguments  
-    while [ $# -gt 0 ]; do
-        case "$1" in
-            --check)
-                check_only=true
-                shift
-                ;;
-            --force)
-                force=true
-                shift
-                ;;
-            --rollback)
-                rollback=true
-                shift
-                ;;
-            --)
-                shift
-                break
-                ;;
-            --*|-*)
-                stacker_unknown_option_error "update" "$1"
-                return 1
-                ;;
-            *)
-                break
-                ;;
-        esac
-    done
-    
-    if [ "$rollback" = true ]; then
-        stacker_rollback_to_previous
-        return $?
-    fi
-    
-    if [ -z "$STACKER_TECH_NAME" ]; then
-        stacker_error "Stacker not initialized"
-        return 1
-    fi
-    
-    if [ "$check_only" = true ]; then
-        stacker_update_check
+    # Handle different update scenarios
+    if [ -z "$target" ]; then
+        # Update everything: framework + all packages
+        echo "Updating Stacker framework and all packages..."
+        stacker_update_framework
+        echo "Updating all packages..."
+        stacker_require "package" || return 1
+        stacker_update_all_packages
+    elif [ "$target" = "stacker" ]; then
+        # Update framework only
+        shift
+        local force=false
+        local check_only=false
+        
+        while [ $# -gt 0 ]; do
+            case "$1" in
+                --check) check_only=true; shift ;;
+                --force) force=true; shift ;;
+                *) echo "Unknown option: $1"; return 1 ;;
+            esac
+        done
+        
+        if [ "$check_only" = true ]; then
+            stacker_framework_update_check
+        else
+            stacker_update_framework "$force"
+        fi
     else
-        stacker_update_perform "$force"
+        # Update specific package
+        shift
+        stacker_require "package" || return 1
+        stacker_update_package "$target" "$@"
     fi
+}
+
+# Update Stacker framework itself
+stacker_update_framework() {
+    local force="$1"
+    
+    echo "🔄 Updating Stacker framework..."
+    
+    # Check if we're in a git repository
+    if [ -d "$STACKER_DIR/.git" ]; then
+        echo "Updating from git repository..."
+        cd "$STACKER_DIR" || return 1
+        git pull origin main || {
+            echo "❌ Failed to update framework"
+            return 1
+        }
+        echo "✅ Framework updated successfully"
+    else
+        echo "Downloading latest framework..."
+        # Download latest install script and run it
+        curl -fsSL https://raw.githubusercontent.com/akaoio/stacker/main/install.sh | sh
+        echo "✅ Framework updated successfully"
+    fi
+}
+
+# Check if framework update is available
+stacker_framework_update_check() {
+    echo "🔍 Checking for framework updates..."
+    
+    if [ -d "$STACKER_DIR/.git" ]; then
+        cd "$STACKER_DIR" || return 1
+        git fetch origin main >/dev/null 2>&1
+        local local_hash remote_hash
+        local_hash=$(git rev-parse HEAD)
+        remote_hash=$(git rev-parse origin/main)
+        
+        if [ "$local_hash" != "$remote_hash" ]; then
+            echo "📦 Framework update available"
+            echo "Current: $local_hash"
+            echo "Latest:  $remote_hash"
+        else
+            echo "✅ Framework is up to date"
+        fi
+    else
+        echo "📦 Framework update check requires git repository"
+    fi
+}
+
+# Update all packages
+stacker_update_all_packages() {
+    echo "🔄 Updating all packages..."
+    # This would iterate through all installed packages
+    echo "✅ All packages updated (not implemented yet)"
+}
+
+# Update specific package
+stacker_update_package() {
+    local package="$1"
+    echo "🔄 Updating package: $package"
+    # This would update specific package
+    echo "✅ Package $package updated (not implemented yet)"
 }
 
 # Check for updates
