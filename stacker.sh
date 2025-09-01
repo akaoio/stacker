@@ -174,9 +174,18 @@ stacker_parse_cli() {
             fi
             ;;
         service|daemon|watchdog)
-            echo "$1 management not implemented"
-            echo "Use: stacker install <package> for package installation"
-            exit 1
+            shift
+            stacker_require "service" || exit 1
+            case "$1" in
+                start) stacker_start_service "$@" ;;
+                stop) stacker_stop_service "$@" ;;
+                restart) stacker_restart_service "$@" ;;
+                status) stacker_service_status "$@" ;;
+                *) 
+                    echo "Usage: stacker service <start|stop|restart|status>"
+                    exit 1
+                    ;;
+            esac
             ;;
         rollback|-r)
             shift
@@ -188,9 +197,16 @@ stacker_parse_cli() {
             stacker_cli_rollback "$@"
             ;;
         enable|disable)
-            echo "$1 command not implemented"
-            echo "Packages are enabled automatically when installed"
-            exit 1
+            shift
+            stacker_require "service" || exit 1
+            case "$1" in
+                enable) stacker_enable_service "$@" ;;
+                disable) stacker_disable_service "$@" ;;
+                *) 
+                    echo "Usage: stacker enable|disable <service>"
+                    exit 1
+                    ;;
+            esac
             ;;
         search)
             shift
