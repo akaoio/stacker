@@ -96,6 +96,24 @@ stacker_parse_cli() {
                 exit 0
             fi
             
+            # Check if trying to install stacker as package (redirect to self-install)
+            if [ "$1" = "gh:akaoio/stacker" ] || [ "$1" = "https://github.com/akaoio/stacker.git" ]; then
+                echo "🔄 Installing/updating Stacker framework..."
+                if [ -d "$STACKER_DIR/.git" ]; then
+                    cd "$STACKER_DIR" && git pull origin main
+                    ./install.sh
+                    echo "✅ Stacker framework updated"
+                else
+                    echo "Downloading latest Stacker..."
+                    rm -rf /tmp/stacker-install
+                    git clone https://github.com/akaoio/stacker.git /tmp/stacker-install
+                    cd /tmp/stacker-install && ./install.sh
+                    rm -rf /tmp/stacker-install
+                    echo "✅ Stacker framework installed"
+                fi
+                exit 0
+            fi
+            
             stacker_require "package" || exit 1
             stacker_install_package "$@"
             ;;
