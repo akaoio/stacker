@@ -182,88 +182,64 @@ stacker_cli_config() {
     esac
 }
 
-# Install command - installs the application
+# Install command - install packages or framework
 stacker_cli_install() {
-    stacker_require "install" || return 1
+    local target="$1"
     
-    local install_type=""
-    local interval=""
-    local auto_update=false
-    local redundant=false
+    if [ -z "$target" ]; then
+        echo "Usage: stacker install <package|stacker>"
+        echo "Examples:"
+        echo "  stacker install nginx"
+        echo "  stacker install stacker  # Update framework"
+        return 1
+    fi
     
-    # Parse arguments
-    while [ $# -gt 0 ]; do
-        case "$1" in
-            --systemd)
-                install_type="systemd"
-                shift
-                ;;
-            --cron)
-                install_type="cron"
-                shift
-                ;;
-            --manual)
-                install_type="manual"
-                shift
-                ;;
-            --interval=*)
-                interval="${1#--interval=}"
-                shift
-                ;;
-            --auto-update|-a)
-                auto_update=true
-                shift
-                ;;
-            --redundant)
-                redundant=true
-                shift
+    if [ "$target" = "stacker" ]; then
+        echo "Framework already installed. Use: stacker update stacker"
+        return 1
+    fi
+    
+    # Install package using package management
+    shift
+    stacker_require "package" || return 1
+    stacker_cli_add "$target" "$@"
+}
+
+# Uninstall command - remove packages or framework
+stacker_cli_uninstall() {
+    local target="$1"
+    
+    if [ -z "$target" ]; then
+        echo "Usage: stacker uninstall <package|stacker>"
+        echo "Examples:"
+        echo "  stacker uninstall nginx"
+        echo "  stacker uninstall stacker  # Remove framework"
+        return 1
+    fi
+    
+    if [ "$target" = "stacker" ]; then
+        echo "WARNING: This will remove Stacker framework completely!"
+        printf "Are you sure? [y/N]: "
+        read -r confirm
+        case "$confirm" in
+            [yY]|[yY][eE][sS])
+                echo "Removing Stacker framework..."
+                rm -rf ~/.local/share/stacker/
+                rm -f ~/.local/bin/stacker
+                rm -rf ~/.config/stacker/
+                echo "✅ Stacker framework removed"
                 ;;
             *)
-                stacker_error "Unknown install option: $1"
-                return 1
+                echo "Cancelled"
                 ;;
         esac
-    done
-    
-    # Default to manual if not specified
-    [ -z "$install_type" ] && install_type="manual"
-    
-    stacker_log "Installing with type: $install_type"
-    [ -n "$interval" ] && stacker_log "Interval: $interval minutes"
-    [ "$auto_update" = true ] && stacker_log "Auto-update enabled"
-    [ "$redundant" = true ] && stacker_log "Redundant installation enabled"
-    
-    # Call appropriate install function
-    case "$install_type" in
-        systemd)
-            stacker_install_systemd
-            ;;
-        cron)
-            if [ -n "$interval" ]; then
-                stacker_install_cron "$interval"
-            else
-                stacker_install_cron
-            fi
-            ;;
-        manual)
-            stacker_install_manual
-            ;;
-        *)
-            stacker_error "Invalid install type: $install_type"
-            return 1
-            ;;
-    esac
-    
-    # Enable auto-update if requested
-    if [ "$auto_update" = true ]; then
-        stacker_set_config "auto_update.enabled" "true"
+        return 0
     fi
     
-    # Install redundant if requested
-    if [ "$redundant" = true ]; then
-        stacker_log "Installing redundant services..."
-        stacker_install_systemd && stacker_install_cron
-    fi
+    # Remove package
+    shift
+    stacker_require "package" || return 1
+    stacker_cli_remove "$target" "$@"
 }
 
 # Health command - checks system health
@@ -476,27 +452,17 @@ stacker_version() {
 
 # Service CLI functions
 stacker_cli_service() {
-    local action="$1"
+    local target="$1"
+    local action="$2"
     
-    case "$action" in
-        start|stop|restart|status|enable|disable)
-            stacker_require "service" || return 1
-            case "$action" in
-                start) stacker_start_service ;;
-                stop) stacker_stop_service ;;
-                restart) stacker_restart_service ;;
-                status) stacker_service_status ;;
-                enable) stacker_enable_service ;;
-                disable) stacker_disable_service ;;
-            esac
-            ;;
-        --help|-h|"")
-            cat << 'EOF'
-Usage: stacker service COMMAND
+    if [ -z "$target" ] || [ -z "$action" ]; then
+        cat << 'EOF'
+Usage: stacker service <package> <command>
 
-Control Stacker service
+Manage package services
 
 Commands:
+  install               Install package as systemd service
   start                 Start the service
   stop                  Stop the service
   restart               Restart the service
@@ -505,14 +471,27 @@ Commands:
   disable               Disable service at boot
 
 Examples:
-  stacker service start
-  stacker service status
-  stacker service enable
+  stacker service nginx install
+  stacker service nginx start
+  stacker service nginx status
 EOF
+        return 1
+    fi
+    
+    case "$action" in
+        install)
+            echo "Installing $target as service..."
+            stacker_require "package" || return 1
+            stacker_cli_add "$target" --service
+            ;;
+        start|stop|restart|status|enable|disable)
+            stacker_require "service" || return 1
+            echo "Managing $target service: $action"
+            # TODO: Implement per-package service management
             ;;
         *)
-            stacker_error "Unknown service command: $action"
-            stacker_error "Run 'stacker service --help' for usage information"
+            echo "Unknown service command: $action"
+            echo "Run 'stacker service <package> --help' for usage information"
             return 1
             ;;
     esac
@@ -872,27 +851,6 @@ EOF
     stacker_package_info "$name" "$scope"
 }
 
-# Rollback CLI function
-stacker_cli_rollback() {
-    if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
-        cat << 'EOF'
-Usage: stacker rollback [VERSION]
-
-Rollback to previous version
-
-Arguments:
-  VERSION                   Specific version to rollback to (optional)
-
-Examples:
-  stacker rollback          # Rollback to previous version
-  stacker rollback 1.2.3    # Rollback to specific version
-EOF
-        return 0
-    fi
-    
-    stacker_require "update" || return 1
-    stacker_rollback "$@"
-}
 
 # Shared scope argument parsing function  
 stacker_parse_scope_args() {

@@ -56,10 +56,6 @@ stacker_parse_cli() {
             stacker_module_info "$2"
             exit 0
             ;;
-        init|-i)
-            shift
-            stacker_smart_call stacker_cli_init "$@"
-            ;;
         config|-c)
             shift
             stacker_smart_call stacker_cli_config "$@"
@@ -68,20 +64,17 @@ stacker_parse_cli() {
             shift
             stacker_smart_call stacker_cli_install "$@"
             ;;
+        uninstall)
+            shift
+            stacker_smart_call stacker_cli_uninstall "$@"
+            ;;
         update|-u)
             shift  
             stacker_smart_call stacker_cli_update "$@"
             ;;
-        service|-s)
+        service)
             shift
             stacker_smart_call stacker_cli_service "$@"
-            ;;
-        health)
-            shift
-            stacker_smart_call stacker_cli_health "$@"
-            ;;
-        status)
-            stacker_smart_call stacker_cli_status "$@"
             ;;
         rollback|-r)
             shift

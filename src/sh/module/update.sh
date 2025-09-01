@@ -47,7 +47,7 @@ stacker_cli_update() {
     done
     
     if [ "$rollback" = true ]; then
-        stacker_cli_rollback
+        stacker_rollback_to_previous
         return $?
     fi
     
@@ -299,8 +299,25 @@ stacker_update_backup() {
     return 0
 }
 
-# Rollback command - rollback to previous version
+
+# Rollback command - CLI interface
 stacker_cli_rollback() {
+    if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+        cat << 'EOF'
+Usage: stacker rollback [VERSION]
+
+Rollback to previous version
+
+Arguments:
+  VERSION                   Specific version to rollback to (optional)
+
+Examples:
+  stacker rollback          # Rollback to previous version
+  stacker rollback 1.2.3    # Rollback to specific version
+EOF
+        return 0
+    fi
+    
     local version=""
     
     # Parse arguments
