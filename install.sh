@@ -47,7 +47,20 @@ CONFIG_DIR="$XDG_CONFIG_HOME/stacker"
 STACKER_BIN="$BIN_DIR/stacker"
 
 # Check if running from git repo
-SCRIPT_DIR="$(dirname "$0")"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+# If we're in a package installation, find the actual stacker.sh
+if [ ! -f "$SCRIPT_DIR/stacker.sh" ]; then
+    # Look for stacker.sh in current directory or parent
+    if [ -f "./stacker.sh" ]; then
+        SCRIPT_DIR="."
+    elif [ -f "../stacker.sh" ]; then
+        SCRIPT_DIR=".."
+    else
+        error "Cannot find stacker.sh for installation"
+        exit 1
+    fi
+fi
 if [ ! -f "$SCRIPT_DIR/stacker.sh" ]; then
     error "install.sh must be run from Stacker source directory"
     exit 1
