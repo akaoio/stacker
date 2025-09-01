@@ -381,22 +381,22 @@ Usage:
 
 Commands:
   # Package Management (Universal POSIX Package Manager)
-  add                   Add package from GitHub/GitLab/URL
-  remove, rm            Remove package
+  install               Install packages or framework
+  uninstall             Remove packages or framework
+  update                Update packages, framework, or everything
   list, ls              List installed packages
-  enable                Enable package in scope (local/user/system)
-  disable               Disable package in scope
+  add                   Add package from GitHub/GitLab/URL (alias for install)
+  remove, rm            Remove package (alias for uninstall)
   search                Search for packages
   info                  Show package information
   
+  # Service Management
+  service               Manage package services (install/start/stop)
+  daemon                Manage package daemons (background processes)
+  watchdog              Manage package monitoring (health checks)
+  
   # Framework Management
-  init, -i              Initialize Stacker framework in current directory
   config, -c            Manage configuration settings
-  install               Install Stacker-based application
-  update, -u            Update Stacker-based application
-  service, -s           Control Stacker service
-  health                Check system health and diagnostics
-  status                Show current status
   rollback, -r          Rollback to previous version
   version, -v           Show version information
   help, -h              Show help information
