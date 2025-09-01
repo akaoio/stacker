@@ -31,12 +31,8 @@ stacker_setup_systemd_service() {
     
     stacker_log "Setting up systemd service for $service_name..."
     
-    # Determine if we should use system or user service
-    if sudo -n true 2>/dev/null; then
-        stacker_setup_system_service
-    else
-        stacker_setup_user_service
-    fi
+    # Always use user service for package installations
+    stacker_setup_user_service
 }
 
 # Setup system-level systemd service
