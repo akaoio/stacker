@@ -73,20 +73,61 @@ stacker_parse_cli() {
         install)
             shift
             if [ "$1" = "--help" ] || [ "$1" = "-h" ] || [ -z "$1" ]; then
-                echo "Usage: stacker install <package-url> [--user|--system|--local]"
-                echo "Examples: stacker install gh:user/repo, stacker install gh:user/repo --system"
+                echo "Usage: stacker install <package-url|stacker> [--user|--system|--local]"
+                echo "Examples: stacker install gh:user/repo, stacker install stacker"
                 exit 0
             fi
+            
+            # Handle self-installation
+            if [ "$1" = "stacker" ]; then
+                echo "🔄 Installing/updating Stacker framework..."
+                if [ -d "$STACKER_DIR/.git" ]; then
+                    cd "$STACKER_DIR" && git pull origin main
+                    ./install.sh
+                    echo "✅ Stacker framework updated"
+                else
+                    echo "Downloading latest Stacker..."
+                    rm -rf /tmp/stacker-install
+                    git clone https://github.com/akaoio/stacker.git /tmp/stacker-install
+                    cd /tmp/stacker-install && ./install.sh
+                    rm -rf /tmp/stacker-install
+                    echo "✅ Stacker framework installed"
+                fi
+                exit 0
+            fi
+            
             stacker_require "package" || exit 1
             stacker_install_package "$@"
             ;;
         uninstall)
             shift
             if [ "$1" = "--help" ] || [ "$1" = "-h" ] || [ -z "$1" ]; then
-                echo "Usage: stacker uninstall <package-name> [--user|--system|--local]"
-                echo "Examples: stacker uninstall air, stacker uninstall air --system"
+                echo "Usage: stacker uninstall <package-name|stacker> [--user|--system|--local]"
+                echo "Examples: stacker uninstall air, stacker uninstall stacker"
                 exit 0
             fi
+            
+            # Handle self-uninstallation
+            if [ "$1" = "stacker" ]; then
+                echo "⚠️  WARNING: This will remove Stacker framework completely!"
+                printf "Are you sure? [y/N]: "
+                read -r confirm
+                case "$confirm" in
+                    [yY]|[yY][eE][sS])
+                        echo "🗑️ Removing Stacker framework..."
+                        rm -rf ~/.local/share/stacker/
+                        rm -f ~/.local/bin/stacker
+                        rm -rf ~/.config/stacker/
+                        echo "✅ Stacker framework removed completely"
+                        echo "To reinstall: curl -sSL https://raw.githubusercontent.com/akaoio/stacker/main/install.sh | sh"
+                        ;;
+                    *)
+                        echo "Cancelled"
+                        ;;
+                esac
+                exit 0
+            fi
+            
             stacker_require "package" || exit 1
             stacker_remove_package "$@"
             ;;
