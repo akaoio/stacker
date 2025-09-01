@@ -99,9 +99,16 @@ install_stacker() {
     # Make stacker executable
     chmod +x "$STACKER_BIN"
     
-    # Update stacker.sh to use XDG-compliant installed location
-    sed -i.bak "s|STACKER_DIR=.*|STACKER_DIR=\"$INSTALL_DIR\"|g" "$STACKER_BIN"
+    # Update stacker.sh to use installed paths
+    sed -i.bak \
+        -e "s|STACKER_DIR=.*|STACKER_DIR=\"$INSTALL_DIR\"|g" \
+        -e "s|src/sh/loader.sh|core/loader.sh|g" \
+        "$STACKER_BIN"
     rm -f "$STACKER_BIN.bak"
+    
+    # Update loader.sh to use installed module path
+    sed -i.bak "s|src/sh/module|core/module|g" "$INSTALL_DIR/core/loader.sh"
+    rm -f "$INSTALL_DIR/core/loader.sh.bak"
     
     log "Stacker framework installed successfully!"
 }
