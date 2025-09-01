@@ -709,11 +709,53 @@ EOF
 
 stacker_cli_list() {
     local all_scopes=false
+    local scope="user"  # Default scope
     
-    # Parse scope and remaining args
-    local parse_result=$(stacker_parse_scope_args "$@")
-    local scope=$(echo "$parse_result" | cut -d' ' -f1)
-    set -- $(echo "$parse_result" | cut -d' ' -f2-)
+    # Parse arguments directly (don't use broken scope parser for no-arg case)
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --local)
+                scope="local"
+                shift
+                ;;
+            --user)  
+                scope="user"
+                shift
+                ;;
+            --system)
+                scope="system" 
+                shift
+                ;;
+            --all|-a)
+                all_scopes=true
+                shift
+                ;;
+            --help|-h)
+                cat << 'EOF'
+Usage: stacker list [OPTIONS]
+
+List installed packages
+
+Options:
+  --local                   List project packages (.stacker/)
+  --user                    List user packages (~/.local/share/stacker) [default]
+  --system                  List system packages (/usr/local/share/stacker)
+  --all, -a                 List packages from all scopes
+  --help, -h                Show this help
+
+Examples:
+  stacker list                           # List user packages
+  stacker list --system                  # List system packages
+  stacker ls --all                       # List all packages (ls alias)
+EOF
+                return 0
+                ;;
+            *)
+                echo "Unknown list option: $1"
+                return 1
+                ;;
+        esac
+    done
     
     while [ $# -gt 0 ]; do
         case "$1" in
@@ -749,12 +791,8 @@ EOF
     done
     
     stacker_require "package" || return 1
-    
     if [ "$all_scopes" = true ]; then
-        for s in local user system; do
-            echo ""
-            stacker_list_packages "$s"
-        done
+        stacker_list_packages "all"
     else
         stacker_list_packages "$scope"
     fi
