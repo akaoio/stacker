@@ -62,8 +62,27 @@ stacker_update_framework() {
         echo "✅ Framework updated successfully"
     else
         echo "Downloading latest framework..."
-        # Download latest install script and run it
-        curl -fsSL https://raw.githubusercontent.com/akaoio/stacker/main/install.sh | sh
+        # Download entire repository and install
+        local tmpdir
+        tmpdir=$(mktemp -d) || {
+            echo "❌ Failed to create temporary directory"
+            return 1
+        }
+        
+        cd "$tmpdir" || return 1
+        git clone https://github.com/akaoio/stacker.git || {
+            echo "❌ Failed to download framework"
+            rm -rf "$tmpdir"
+            return 1
+        }
+        
+        cd stacker && echo "yes" | ./install.sh || {
+            echo "❌ Failed to install framework"
+            rm -rf "$tmpdir"
+            return 1
+        }
+        
+        rm -rf "$tmpdir"
         echo "✅ Framework updated successfully"
     fi
 }
