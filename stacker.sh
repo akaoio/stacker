@@ -130,6 +130,6 @@ stacker_parse_cli() {
 }
 
 # If script is executed (not sourced), run CLI
-if [ "${0##*/}" = "stacker.sh" ]; then
+if [ "${0##*/}" = "stacker.sh" ] || [ "${0##*/}" = "stacker" ]; then
     stacker_parse_cli "$@"
 fi

@@ -189,7 +189,8 @@ stacker_cli_install() {
     if [ -z "$target" ]; then
         echo "Usage: stacker install <package|stacker>"
         echo "Examples:"
-        echo "  stacker install nginx"
+        echo "  stacker install gh:nginx/nginx"
+        echo "  stacker install gh:redis/redis"
         echo "  stacker install stacker  # Update framework"
         return 1
     fi
@@ -212,7 +213,8 @@ stacker_cli_uninstall() {
     if [ -z "$target" ]; then
         echo "Usage: stacker uninstall <package|stacker>"
         echo "Examples:"
-        echo "  stacker uninstall nginx"
+        echo "  stacker uninstall gh:nginx/nginx"
+        echo "  stacker uninstall gh:redis/redis"
         echo "  stacker uninstall stacker  # Remove framework"
         return 1
     fi
@@ -406,20 +408,17 @@ Options:
   --module-info, -m    Show module information
 
 Command Examples:
-  # Package Management - Like npm/yarn/bun but for POSIX systems
-  stacker add gh:akaoio/air              # Add package from GitHub
-  stacker add gh:akaoio/air --user       # Install for user only
-  stacker add gh:akaoio/air --system     # Install system-wide
-  stacker remove air                     # Remove package
-  stacker list --user                    # List user packages
-  stacker enable air --local             # Enable package locally
+  # Package Management - Clean system tool pattern
+  stacker install gh:nginx/nginx        # Install nginx package
+  stacker uninstall gh:nginx/nginx      # Remove nginx package
+  stacker update gh:nginx/nginx         # Update nginx package
+  stacker update stacker                # Update framework
+  stacker update                        # Update everything
   
-  # Framework Management
-  stacker init --template=cli --name=mytool
-  stacker config set update.interval 3600
-  stacker install --systemd --auto-update
-  stacker service status
-  stacker health --verbose
+  # Service Management
+  stacker service gh:nginx/nginx install # Install nginx as systemd service
+  stacker daemon gh:redis/redis install  # Install redis as background daemon
+  stacker watchdog gh:postgresql/postgresql install # Install postgres with monitoring
 
 For detailed help on any command:
   stacker [COMMAND] --help
@@ -471,9 +470,9 @@ Commands:
   disable               Disable service at boot
 
 Examples:
-  stacker service nginx install
-  stacker service nginx start
-  stacker service nginx status
+  stacker service gh:nginx/nginx install
+  stacker service gh:nginx/nginx start
+  stacker service gh:redis/redis status
 EOF
         return 1
     fi
@@ -517,9 +516,9 @@ Commands:
   status                Show daemon status
 
 Examples:
-  stacker daemon redis install
-  stacker daemon redis start
-  stacker daemon redis status
+  stacker daemon gh:redis/redis install
+  stacker daemon gh:postgresql/postgresql start
+  stacker daemon gh:mongodb/mongo status
 EOF
         return 1
     fi
@@ -564,9 +563,9 @@ Commands:
   status                Show watchdog status
 
 Examples:
-  stacker watchdog nginx install
-  stacker watchdog nginx start
-  stacker watchdog nginx status
+  stacker watchdog gh:nginx/nginx install
+  stacker watchdog gh:apache/httpd start
+  stacker watchdog gh:traefik/traefik status
 EOF
         return 1
     fi
