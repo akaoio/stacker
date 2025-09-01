@@ -47,7 +47,7 @@ stacker_get_module_dependencies() {
 # Load a single module with dependency resolution
 stacker_load_module() {
     local module_name="$1"
-    local module_file="$STACKER_DIR/modules/${module_name}.sh"
+    local module_file="$STACKER_DIR/src/sh/module/${module_name}.sh"
     
     # Skip if already loaded
     if stacker_is_module_loaded "$module_name"; then
@@ -118,12 +118,12 @@ stacker_require() {
 
 # List all available modules
 stacker_list_available_modules() {
-    local modules_dir="$STACKER_DIR/modules"
+    local modules_dir="$STACKER_DIR/src/sh/module"
     local module_file module_name
     
     echo "Available modules:"
     
-    # List modules in modules/ directory
+    # List modules in src/sh/module/ directory
     if [ -d "$modules_dir" ]; then
         for module_file in "$modules_dir"/*.sh; do
             if [ -f "$module_file" ]; then
@@ -237,13 +237,16 @@ stacker_loader_init() {
     }
 }
 
-# Module loader is ready - basic error function for bootstrap
+# Module loader is ready - basic functions for bootstrap
+# These will be replaced by full core module functions when loaded
 stacker_error() {
+    # Simple bootstrap version - will be overridden by core module
     echo "ERROR: $*" >&2
 }
 
 stacker_debug() {
-    if [ "${STACKER_DEBUG:-0}" = "1" ]; then
+    # Simple bootstrap version - will be overridden by core module  
+    if [ "${STACKER_DEBUG:-0}" = "1" ] || [ "${STACKER_DEBUG:-0}" = "true" ]; then
         echo "DEBUG: $*" >&2
     fi
 }

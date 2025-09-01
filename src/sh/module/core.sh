@@ -526,11 +526,203 @@ stacker_get_user_home() {
     fi
 }
 
+# Universal argument parsing utilities
+# Standardizes common argument patterns across all modules
+
+# Standard error messages
+STACKER_ERR_UNKNOWN_OPTION="Unknown option for"
+STACKER_ERR_MISSING_ARG="Missing required argument for"
+STACKER_ERR_INVALID_VALUE="Invalid value for option"
+
+# Universal argument parser helper
+# Usage: stacker_parse_common_args "command_name" "$@"
+stacker_parse_common_args() {
+    local command_name="$1"
+    shift
+    
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --help|-h)
+                stacker_show_command_help "$command_name"
+                return 0
+                ;;
+            --version|-v)
+                echo "$STACKER_VERSION"
+                return 0
+                ;;
+            --debug)
+                STACKER_DEBUG=true
+                shift
+                ;;
+            --quiet|-q)
+                STACKER_QUIET=true
+                shift
+                ;;
+            --)
+                shift
+                break
+                ;;
+            --*)
+                # Unknown long option - let command handle it
+                break
+                ;;
+            -*)
+                # Unknown short option - let command handle it  
+                break
+                ;;
+            *)
+                # Non-option argument - let command handle it
+                break
+                ;;
+        esac
+    done
+    
+    # Return remaining arguments for command-specific parsing
+    return 0
+}
+
+# Standardized error for unknown options
+stacker_unknown_option_error() {
+    local command_name="$1"
+    local option="$2"
+    stacker_error "$STACKER_ERR_UNKNOWN_OPTION $command_name: $option"
+}
+
+# Standardized error for missing arguments
+stacker_missing_arg_error() {
+    local option="$1"
+    stacker_error "$STACKER_ERR_MISSING_ARG $option"
+}
+
+# Standardized error for invalid values
+stacker_invalid_value_error() {
+    local option="$1"
+    local value="$2"
+    stacker_error "$STACKER_ERR_INVALID_VALUE $option: $value"
+}
+
+# Common argument parsing pattern
+# Usage: stacker_standard_args_loop "command_name" valid_options_array "$@"
+stacker_standard_args_loop() {
+    local command_name="$1"
+    shift
+    
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --help|-h)
+                stacker_show_command_help "$command_name"
+                return 0
+                ;;
+            --version|-v)
+                echo "$STACKER_VERSION"
+                return 0
+                ;;
+            --debug)
+                STACKER_DEBUG=true
+                shift
+                ;;
+            --quiet|-q)
+                STACKER_QUIET=true
+                shift
+                ;;
+            --)
+                shift
+                break
+                ;;
+            --*|-*)
+                stacker_unknown_option_error "$command_name" "$1"
+                return 1
+                ;;
+            *)
+                break
+                ;;
+        esac
+    done
+}
+
+# Show command help (placeholder for future help system)
+stacker_show_command_help() {
+    local command_name="$1"
+    echo "Help for $command_name command"
+    echo "Use: stacker $command_name --help for detailed information"
+}
+
+# Shared argument parsing utility for help options
+stacker_parse_help_args() {
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --help|-h)
+                return 0  # Help requested
+                ;;
+            *)
+                return 1  # No help requested
+                ;;
+        esac
+        shift
+    done
+    return 1
+}
+
+# Shared argument parsing utility for common options
+stacker_parse_common_options() {
+    local verbose=false
+    local debug=false
+    
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --verbose|-v)
+                verbose=true
+                export STACKER_VERBOSE=1
+                ;;
+            --debug|-d)
+                debug=true
+                export STACKER_DEBUG=1
+                ;;
+            --no-color)
+                export NO_COLOR=1
+                ;;
+            --force-color)
+                export FORCE_COLOR=1
+                ;;
+            *)
+                # Return remaining args
+                echo "$*"
+                return 0
+                ;;
+        esac
+        shift
+    done
+    
+    echo ""
+}
+
+# Shared help formatter utility
+stacker_format_help() {
+    local command="$1"
+    local description="$2"
+    local usage="$3"
+    local options="$4"
+    local examples="$5"
+    
+    printf "Usage: stacker %s %s\n\n%s\n\n" "$command" "$usage" "$description"
+    
+    if [ -n "$options" ]; then
+        printf "Options:\n%s\n\n" "$options"
+    fi
+    
+    if [ -n "$examples" ]; then
+        printf "Examples:\n%s\n\n" "$examples"
+    fi
+}
+
 # Export public interface
 core_list_functions() {
     echo "stacker_log stacker_info stacker_warn stacker_error stacker_debug"
     echo "stacker_detect_os stacker_detect_package_stacker stacker_check_requirements"
+    echo "stacker_parse_help_args stacker_parse_common_options stacker_format_help"
     echo "stacker_create_xdg_dirs stacker_validate_input stacker_create_temp_file"
     echo "stacker_check_privileges stacker_exec_privileged stacker_get_user stacker_get_user_home"
     echo "stacker_to_upper stacker_to_lower stacker_auto_install_deps"
+    echo "stacker_parse_common_args stacker_standard_args_loop stacker_show_command_help"
+    echo "stacker_unknown_option_error stacker_missing_arg_error stacker_invalid_value_error"
 }

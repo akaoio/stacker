@@ -133,13 +133,13 @@ jobs:
       - name: Create release package
         run: |
           mkdir -p release
-          cp -r dist/ release/
           cp stacker.sh release/
-          cp stacker-loader.sh release/
-          cp -r modules/ release/
-          cp package.json release/
+          cp install.sh release/
+          cp -r src/ release/
+          cp -r test/ release/
           cp README.md release/
           cp LICENSE release/
+          cp API.md release/
 
       - name: Upload release artifacts
         uses: actions/upload-artifact@v4

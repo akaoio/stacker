@@ -353,8 +353,8 @@ stacker_setup_service_with_watchdog() {
     stacker_setup_systemd_service || return 1
     
     # Load watchdog module if available
-    if [ -f "$(dirname "$0")/watchdog.sh" ]; then
-        . "$(dirname "$0")/watchdog.sh"
+    if stacker_require "watchdog" 2>/dev/null; then
+        # Watchdog module loaded successfully
         watchdog_init
         
         # Setup watchdog integration

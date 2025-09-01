@@ -14,7 +14,10 @@ stacker_cli_update() {
     local force=false
     local rollback=false
     
-    # Parse arguments
+    # Parse common arguments first
+    stacker_parse_common_args "update" "$@" || return $?
+    
+    # Parse command-specific arguments  
     while [ $# -gt 0 ]; do
         case "$1" in
             --check)
@@ -29,9 +32,16 @@ stacker_cli_update() {
                 rollback=true
                 shift
                 ;;
-            *)
-                stacker_error "Unknown update option: $1"
+            --)
+                shift
+                break
+                ;;
+            --*|-*)
+                stacker_unknown_option_error "update" "$1"
                 return 1
+                ;;
+            *)
+                break
                 ;;
         esac
     done
@@ -245,9 +255,9 @@ stacker_update_git() {
     }
     
     # Run post-update hooks if they exist
-    if [ -f "scripts/post-update.sh" ]; then
+    if [ -f "post-update.sh" ]; then
         stacker_log "Running post-update script..."
-        sh scripts/post-update.sh || stacker_warn "Post-update script failed"
+        sh post-update.sh || stacker_warn "Post-update script failed"
     fi
     
     stacker_log "✅ Update completed successfully"
@@ -403,7 +413,10 @@ stacker_cli_self_update() {
     local check_only=false
     local channel="stable"
     
-    # Parse arguments
+    # Parse common arguments first
+    stacker_parse_common_args "self-update" "$@" || return $?
+    
+    # Parse command-specific arguments
     while [ $# -gt 0 ]; do
         case "$1" in
             --check)
@@ -414,9 +427,16 @@ stacker_cli_self_update() {
                 channel="${1#--channel=}"
                 shift
                 ;;
-            *)
-                stacker_error "Unknown self-update option: $1"
+            --)
+                shift
+                break
+                ;;
+            --*|-*)
+                stacker_unknown_option_error "self-update" "$1"
                 return 1
+                ;;
+            *)
+                break
                 ;;
         esac
     done

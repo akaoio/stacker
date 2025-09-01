@@ -4,13 +4,13 @@ Universal POSIX shell framework for system management - The foundational framewo
 
 > Stacker brings order to chaos - a universal shell framework with modular loading that works everywhere, forever.
 
-**Version**: 2.0.0  
+**Version**: 0.0.1  
 **License**: MIT  
 **Repository**: https://github.com/akaoio/stacker
 
 ## Overview
 
-Stacker is a comprehensive shell framework that provides standardized patterns for system management, configuration, installation, updates, and service orchestration. Version 2.0.0 features a complete CLI interface with interactive commands and comprehensive help system.
+Stacker is a comprehensive shell framework that provides standardized patterns for system management, configuration, installation, updates, and service orchestration. Version 0.0.1 features a complete CLI interface with interactive commands and comprehensive help system.
 
 ## Core Principles
 
@@ -49,14 +49,17 @@ Built to last forever - when languages come and go, Stacker remains
 ## Installation
 
 ```bash
-# Quick install with default settings
-curl -sSL https://raw.githubusercontent.com/akaoio/stacker/main/install.sh | sh
+# Method 1: Git clone (recommended)
+git clone https://github.com/akaoio/stacker.git
+cd stacker
+./install.sh
 
-# Install as systemd service
-curl -sSL https://raw.githubusercontent.com/akaoio/stacker/main/install.sh | sh -s -- --systemd
+# Method 2: One-liner install
+curl -fsSL https://raw.githubusercontent.com/akaoio/stacker/main/install.sh | sh
 
-# Install with custom prefix
-curl -sSL https://raw.githubusercontent.com/akaoio/stacker/main/install.sh | sh -s -- --prefix=/opt/stacker
+# Method 3: Manual download
+wget https://github.com/akaoio/stacker/releases/latest/download/stacker.sh
+chmod +x stacker.sh
 ```
 
 ## Usage
@@ -93,7 +96,7 @@ Initialize Stacker framework in current directory
 
 **Examples**:
 - `stacker init` - Initialize with interactive prompts
-- `stacker init --template&#x3D;cli --name&#x3D;mytool` - Initialize CLI application template
+- `stacker init --template cli --name mytool` - Initialize CLI application template
 
 ### `config, -c`
 Manage configuration settings
@@ -212,32 +215,33 @@ Show help information
 - `stacker help install` - Show help for install command
 
 
-## Architecture Components
+## Architecture
 
-### Core Module (stacker-core.sh)
-Central framework providing common functions, error handling, logging, and state management
+### Modular Shell Framework
+Stacker uses a clean modular architecture with dynamic loading:
 
-**Responsibility**: Foundation layer for all Stacker operations
+```
+stacker/
+├── stacker.sh              # Main entry point
+├── install.sh              # XDG-compliant installer
+├── VERSION                 # Single source of truth
+└── src/sh/
+    ├── loader.sh           # Module loading system
+    └── module/             # Implementation modules
+        ├── core.sh         # Core utilities & logging
+        ├── cli.sh          # Command-line interface
+        ├── config.sh       # Configuration management
+        ├── install.sh      # Installation workflows
+        ├── service.sh      # Service management
+        ├── update.sh       # Update system
+        ├── package.sh      # Package management
+        └── watchdog.sh     # Health monitoring
+```
 
-### Configuration Module (stacker-config.sh)
-XDG-compliant configuration management with JSON support and environment variable overrides
-
-**Responsibility**: Centralized configuration handling across all modules
-
-### Installation Module (stacker-install.sh)
-Universal installation framework supporting systemd, cron, and manual deployment
-
-**Responsibility**: Standardized installation across different environments
-
-### Update Module (stacker-update.sh)
-Intelligent update system with version management and rollback capabilities
-
-**Responsibility**: Safe and reliable system updates
-
-### Service Module (stacker-service.sh)
-Service lifecycle management for systemd, init.d, and standalone daemons
-
-**Responsibility**: Unified service control interface
+### Module Loading
+- **Dynamic loading**: Modules loaded only when needed
+- **Dependency resolution**: Automatic dependency loading
+- **POSIX compliance**: Pure shell implementation
 
 ### CLI Interface (integrated)
 Complete command-line interface with interactive commands, argument parsing, and comprehensive help system
@@ -265,12 +269,11 @@ Auto-update capability with integrity verification and atomic updates
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `STACKER_CONFIG_DIR` | Override default config directory | `$HOME/.config/stacker` |
-| `STACKER_DATA_DIR` | Override default data directory | `$HOME/.local/share/stacker` |
-| `STACKER_LOG_LEVEL` | Logging level (debug, info, warn, error) | `info` |
-| `STACKER_UPDATE_CHANNEL` | Update channel (stable, beta, nightly) | `stable` |
-| `STACKER_AUTO_UPDATE` | Enable automatic updates | `false` |
-| `STACKER_PREFIX` | Installation prefix | `/usr/local` |
+| `STACKER_DEBUG` | Enable debug logging | `false` |
+| `XDG_CONFIG_HOME` | XDG config directory | `$HOME/.config` |
+| `XDG_DATA_HOME` | XDG data directory | `$HOME/.local/share` |
+| `XDG_STATE_HOME` | XDG state directory | `$HOME/.local/state` |
+| `XDG_CACHE_HOME` | XDG cache directory | `$HOME/.cache` |
 
 ## Why Stacker Matters
 

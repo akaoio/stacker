@@ -49,8 +49,8 @@ done
 echo ""
 echo "🏗️  Verifying project structure..."
 
-REQUIRED_FILES="package.json battle.config.js builder.config.js stacker.sh"
-REQUIRED_DIRS="src tests modules"
+REQUIRED_FILES="stacker.sh install.sh"
+REQUIRED_DIRS="src test"
 
 for file in $REQUIRED_FILES; do
     if [ -f "$file" ]; then
@@ -73,8 +73,8 @@ done
 # Create test result directories
 echo ""
 echo "📁 Creating test result directories..."
-mkdir -p tests/results
-mkdir -p tests/results/screenshots
+mkdir -p test/results
+mkdir -p test/results/screenshots
 mkdir -p logs
 echo "   ✅ Test directories created"
 
@@ -82,8 +82,8 @@ echo "   ✅ Test directories created"
 echo ""
 echo "🔧 Setting up executable permissions..."
 chmod +x stacker.sh
-chmod +x stacker-loader.sh
-find tests -name "*.test.sh" -exec chmod +x {} \;
+chmod +x src/sh/loader.sh
+find test -name "*.test.sh" -exec chmod +x {} \;
 echo "   ✅ Permissions configured"
 
 # Install dependencies with retry logic

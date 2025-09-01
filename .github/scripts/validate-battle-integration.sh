@@ -9,8 +9,8 @@ echo "==========================================="
 
 # Configuration
 VALIDATION_TIMEOUT=120
-BATTLE_TESTS_DIR="tests/battle"
-LEGACY_TESTS_DIR="tests"
+BATTLE_TESTS_DIR="test"
+LEGACY_TESTS_DIR="test"
 BATTLE_CONFIG="battle.config.js"
 
 # Results tracking
@@ -81,7 +81,7 @@ validate "Build artifacts exist" \
     "test -f dist/index.js && test -f dist/index.cjs"
 
 validate "Shell interface is executable" \
-    "test -x stacker.sh && ./stacker.sh version | grep -q '0.0.2'"
+    "test -x stacker.sh && ./stacker.sh version | grep -q '0.0.1'"
 
 validate "TypeScript interface loads" \
     "node -e 'import(\"./dist/index.js\").then(() => console.log(\"OK\")).catch(e => process.exit(1))'"
@@ -91,23 +91,23 @@ echo ""
 echo "${BLUE}🔍 Phase 3: Battle Test Discovery${NC}"
 
 validate "Battle can process test directory" \
-    "npx battle test tests/ --timeout=10 2>&1 | grep -qE '(Starting|Running|Found)' || true"
+    "npx battle test test/ --timeout=10 2>&1 | grep -qE '(Starting|Running|Found)' || true"
 
 validate "Battle configuration pattern matches files" \
-    "find tests/ -name '*.test.*' -type f | wc -l | grep -qE '[1-9]'"
+    "find test/ -name '*.test.*' -type f | wc -l | grep -qE '[1-9]'"
 
 validate "Shell compatibility tests exist" \
-    "test -f tests/battle/shell-compatibility.test.sh && test -x tests/battle/shell-compatibility.test.sh"
+    "test -f test/shell-compatibility.test.sh && test -x test/shell-compatibility.test.sh"
 
 validate "Hybrid architecture tests exist" \
-    "test -f tests/battle/hybrid-architecture.test.ts"
+    "test -f test/hybrid-architecture.test.ts"
 
 # Phase 4: Individual Test Validation
 echo ""
 echo "${BLUE}🧪 Phase 4: Individual Test Validation${NC}"
 
 validate "Shell compatibility test runs standalone" \
-    "./tests/battle/shell-compatibility.test.sh"
+    "./test/shell-compatibility.test.sh"
 
 validate "Legacy Battle integration test works" \
     "test -f test/battle-integration.test.ts && timeout 60 npx tsx test/battle-integration.test.ts || true"
@@ -120,10 +120,10 @@ echo ""
 echo "${BLUE}🚀 Phase 5: Full Battle Integration${NC}"
 
 validate "Battle test suite executes with config" \
-    "timeout 90 npx battle test tests/ --timeout=60 || true"
+    "timeout 90 npx battle test test/ --timeout=60 || true"
 
 validate "Battle generates JSON report" \
-    "npx battle test tests/ --timeout=60 || true"
+    "npx battle test test/ --timeout=60 || true"
 
 validate "Battle test completion" \
     "npm run test:ci || true"
@@ -136,10 +136,10 @@ validate "CI test script works" \
     "CI=true npm run test:ci || true"
 
 validate "Test results directory structure" \
-    "test -d tests/results && test -d tests/results/screenshots"
+    "test -d test/results && test -d test/results/screenshots"
 
 validate "Legacy test script still available" \
-    "test -x tests/run-tests.sh && timeout 30 npm run test:legacy || true"
+    "test -x test/run-tests.sh && timeout 30 npm run test:legacy || true"
 
 # Phase 7: Multi-shell Validation
 echo ""
@@ -148,7 +148,7 @@ echo "${BLUE}🐚 Phase 7: Multi-shell Validation${NC}"
 for shell in "/bin/sh" "/bin/bash" "/bin/dash"; do
     if [ -x "$shell" ]; then
         validate "Stacker works with $shell" \
-            "SHELL=$shell $shell ./stacker.sh version | grep -q '0.0.2'"
+            "SHELL=$shell $shell ./stacker.sh version | grep -q '0.0.1'"
     else
         echo "${YELLOW}   ⚠️  Skipping $shell (not available)${NC}"
     fi
@@ -219,7 +219,7 @@ elif [ $SUCCESS_RATE -ge 60 ]; then
     echo "${YELLOW}⚠️  Partial Battle Integration${NC}"
     echo "   Basic functionality working"
     echo "   Several issues need attention"
-    echo "   Acceptable for v0.0.2 development"
+    echo "   Acceptable for v0.0.1 development"
     echo ""
     echo "🛠️  Recommendations:"
     echo "   - Review failed validations above"
