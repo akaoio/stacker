@@ -400,7 +400,6 @@ stacker_cli_health() {
 # Status command - shows current status
 stacker_cli_status() {
     stacker_log "Stacker Status"
-    stacker_log "=============="
     
     # Project info
     if [ -f "stacker.yaml" ]; then
@@ -543,9 +542,14 @@ EOF
             ;;
         start|stop|restart|status|enable|disable)
             stacker_require "service" || return 1
-            echo "Managing $target service: $action"
-            echo "Service management not yet available - install package first"
-            return 1
+            stacker_require "service" || return 1
+            case "$action" in
+                start) stacker_start_service ;;
+                stop) stacker_stop_service ;;
+                restart) stacker_restart_service ;;
+                status) stacker_service_status ;;
+                *) echo "Unknown service action: $action"; return 1 ;;
+            esac
             ;;
         *)
             echo "Unknown service command: $action"
@@ -590,13 +594,19 @@ EOF
             ;;
         uninstall)
             echo "Removing $target daemon setup..."
-            echo "Daemon removal not yet available"
-            return 1
+            stacker_require "service" || return 1
+            stacker_disable_service
+            echo "Daemon removed"
             ;;
         start|stop|restart|status)
             echo "Managing $target daemon: $action"
-            echo "Daemon control not yet available"
-            return 1
+            stacker_require "service" || return 1
+            case "$action" in
+                start) stacker_start_service ;;
+                stop) stacker_stop_service ;;
+                restart) stacker_restart_service ;;
+                status) stacker_service_status ;;
+            esac
             ;;
         *)
             echo "Unknown daemon command: $action"
@@ -639,13 +649,19 @@ EOF
             ;;
         uninstall)
             echo "Removing $target watchdog setup..."
-            echo "Watchdog removal not yet available"
-            return 1
+            stacker_require "watchdog" || return 1
+            stacker_disable_watchdog
+            echo "Watchdog removed"
             ;;
         start|stop|restart|status)
             echo "Managing $target watchdog: $action"
-            echo "Watchdog control not yet available"
-            return 1
+            stacker_require "watchdog" || return 1
+            case "$action" in
+                start) stacker_start_watchdog ;;
+                stop) stacker_stop_watchdog ;;
+                restart) stacker_restart_watchdog ;;
+                status) stacker_watchdog_status ;;
+            esac
             ;;
         *)
             echo "Unknown watchdog command: $action"

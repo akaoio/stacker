@@ -386,9 +386,24 @@ stacker_update_git() {
 
 # Manifest-based update
 stacker_update_manifest() {
-    stacker_warn "Manifest-based updates not available"
-    stacker_log "Use git-based updates instead"
-    return 1
+    local manifest_file="$STACKER_CONFIG_DIR/manifest.json"
+    
+    if [ ! -f "$manifest_file" ]; then
+        stacker_warn "No manifest file found, using git-based updates"
+        stacker_update_git
+        return $?
+    fi
+    
+    stacker_log "Updating from manifest: $manifest_file"
+    # Read manifest and perform updates based on specifications
+    local packages=$(grep -o '"[^"]*"' "$manifest_file" 2>/dev/null | tr -d '"')
+    for package in $packages; do
+        stacker_update_package "$package" || {
+            stacker_warn "Failed to update package: $package"
+        }
+    done
+    
+    return 0
 }
 
 # Create backup before update

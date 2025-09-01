@@ -5,7 +5,6 @@
 set -e
 
 echo "🚀 Setting up Stacker CI/CD Environment"
-echo "======================================"
 
 # System information
 echo "📋 System Information:"
@@ -216,7 +215,6 @@ fi
 # Setup complete
 echo ""
 echo "🎉 CI/CD Environment Setup Complete!"
-echo "=================================="
 echo ""
 echo "✅ All required tools verified"
 echo "✅ Project structure validated"

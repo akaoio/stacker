@@ -265,7 +265,6 @@ stacker_list_packages() {
     fi
     
     echo "Packages installed in $scope scope:"
-    echo "======================================"
     
     for package in "$pkg_dir"/*; do
         if [ -d "$package" ] && [ -f "$package/stacker.yaml" ]; then
@@ -435,7 +434,6 @@ stacker_package_info() {
     local manifest="$pkg_dir/stacker.yaml"
     
     echo "Package Information: $name"
-    echo "===================="
     echo "Scope: $scope"
     echo "Location: $pkg_dir"
     echo "Enabled: $(stacker_package_enabled "$name" "$scope" && echo "Yes" || echo "No")"
@@ -460,7 +458,6 @@ stacker_search_packages() {
     fi
     
     echo "Package Search: '$query'"
-    echo "======================="
     
     # Search in GitHub via API
     local github_results

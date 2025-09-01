@@ -5,7 +5,6 @@
 set -e
 
 echo "🧪 Battle Framework Integration Validation"
-echo "==========================================="
 
 # Configuration
 VALIDATION_TIMEOUT=120
@@ -186,7 +185,6 @@ validate "Workflow includes multi-shell testing" \
 # Final Results Summary
 echo ""
 echo "${CYAN}📊 Battle Integration Validation Results${NC}"
-echo "============================================"
 echo "${GREEN}Passed: $PASSED_VALIDATIONS${NC}"
 echo "${RED}Failed: $FAILED_VALIDATIONS${NC}"
 echo "Total: $TOTAL_VALIDATIONS"

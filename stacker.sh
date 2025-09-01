@@ -173,16 +173,118 @@ stacker_parse_cli() {
                 stacker_list_packages "${1:-user}"
             fi
             ;;
-        service|daemon|watchdog)
+        service)
             shift
+            if [ $# -lt 2 ]; then
+                echo "Usage: stacker service <package> <action>"
+                echo "Actions: start, stop, restart, status, install"
+                exit 1
+            fi
+            
+            local package_name="$1"
+            local action="$2"
+            shift 2
+            
+            # Set package context for service functions
+            export STACKER_TECH_NAME="$package_name"
             stacker_require "service" || exit 1
-            case "$1" in
-                start) stacker_start_service "$@" ;;
-                stop) stacker_stop_service "$@" ;;
-                restart) stacker_restart_service "$@" ;;
-                status) stacker_service_status "$@" ;;
+            
+            case "$action" in
+                install)
+                    echo "Installing $package_name as systemd service..."
+                    stacker_setup_systemd_service
+                    ;;
+                start) 
+                    echo "Starting $package_name service..."
+                    stacker_start_service 
+                    ;;
+                stop) 
+                    echo "Stopping $package_name service..."
+                    stacker_stop_service 
+                    ;;
+                restart) 
+                    echo "Restarting $package_name service..."
+                    stacker_restart_service 
+                    ;;
+                status) 
+                    echo "Status for $package_name service:"
+                    stacker_service_status 
+                    ;;
                 *) 
-                    echo "Usage: stacker service <start|stop|restart|status>"
+                    echo "Unknown service action: $action"
+                    echo "Usage: stacker service <package> <start|stop|restart|status|install>"
+                    exit 1
+                    ;;
+            esac
+            ;;
+        daemon)
+            shift  
+            if [ $# -lt 2 ]; then
+                echo "Usage: stacker daemon <package> <action>"
+                echo "Actions: install, start, stop, restart, status"
+                exit 1
+            fi
+            
+            local package_name="$1"
+            local action="$2"
+            shift 2
+            
+            export STACKER_TECH_NAME="$package_name"
+            stacker_require "service" || exit 1
+            
+            case "$action" in
+                install)
+                    echo "Installing $package_name as daemon..."
+                    stacker_setup_systemd_service
+                    ;;
+                start|stop|restart|status)
+                    echo "Managing $package_name daemon: $action"
+                    case "$action" in
+                        start) stacker_start_service ;;
+                        stop) stacker_stop_service ;;
+                        restart) stacker_restart_service ;;
+                        status) stacker_service_status ;;
+                    esac
+                    ;;
+                *)
+                    echo "Unknown daemon action: $action"
+                    echo "Usage: stacker daemon <package> <install|start|stop|restart|status>"
+                    exit 1
+                    ;;
+            esac
+            ;;
+        watchdog)
+            shift
+            if [ $# -lt 2 ]; then
+                echo "Usage: stacker watchdog <package> <action>"
+                echo "Actions: install, start, stop, restart, status"
+                exit 1
+            fi
+            
+            local package_name="$1"
+            local action="$2"
+            shift 2
+            
+            export STACKER_TECH_NAME="$package_name"
+            stacker_require "watchdog" || exit 1
+            
+            case "$action" in
+                install)
+                    echo "Installing $package_name with watchdog..."
+                    stacker_setup_service_with_watchdog
+                    ;;
+                start|stop|restart|status)
+                    echo "Managing $package_name watchdog: $action"
+                    case "$action" in
+                        start) stacker_start_watchdog ;;
+                        stop) stacker_stop_watchdog ;;
+                        restart) stacker_restart_watchdog ;;
+                        status) stacker_watchdog_status ;;
+                    esac
+                    ;;
+                *)
+                    echo "Unknown watchdog action: $action"
+                    echo "Usage: stacker watchdog <package> <install|start|stop|restart|status>"
                     exit 1
                     ;;
             esac

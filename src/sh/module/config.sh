@@ -324,7 +324,6 @@ stacker_configure_interactive() {
     local key value
     
     stacker_log "Interactive configuration for $STACKER_TECH_NAME"
-    echo "=========================================="
     
     # Load existing configuration
     stacker_load_config
@@ -365,9 +364,7 @@ stacker_configure_interactive() {
 stacker_show_config() {
     local config_file="$STACKER_CONFIG_DIR/config.json"
     
-    echo "=========================================="
-    echo "  $STACKER_TECH_NAME Configuration"
-    echo "=========================================="
+    echo "$STACKER_TECH_NAME Configuration"
     echo ""
     
     if [ -f "$config_file" ]; then

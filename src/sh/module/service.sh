@@ -42,15 +42,42 @@ stacker_setup_systemd_service() {
 # Setup system-level systemd service
 stacker_setup_system_service() {
     local service_name="$STACKER_TECH_NAME"
-    local service_desc="$STACKER_SERVICE_DESCRIPTION"
-    local install_dir="$STACKER_INSTALL_DIR"
+    local service_desc="${STACKER_SERVICE_DESCRIPTION:-$STACKER_TECH_NAME daemon service}"
+    local install_dir="${STACKER_INSTALL_DIR:-$HOME/.local/bin}"
     local user="$(stacker_get_user)"
     local user_home="$(stacker_get_user_home)"
     local service_file="/etc/systemd/system/${service_name}.service"
     
-    stacker_log "Creating system-level service (requires sudo)..."
+    # Resolve service configuration with proper defaults
+    local service_type="${STACKER_SERVICE_TYPE:-simple}"
+    local pid_file_line=""
+    if [ -n "$STACKER_PID_FILE" ]; then
+        pid_file_line="PIDFile=$STACKER_PID_FILE"
+    fi
     
-    # Create service file
+    # Determine appropriate service command
+    local binary_path="$install_dir/$service_name"
+    local exec_start
+    
+    if [ -x "$binary_path" ]; then
+        # Check what commands the binary supports
+        if "$binary_path" help 2>/dev/null | grep -q "daemon"; then
+            exec_start="$binary_path daemon"
+        elif "$binary_path" help 2>/dev/null | grep -q "start"; then
+            exec_start="$binary_path start"
+        else
+            exec_start="$binary_path"
+        fi
+    else
+        # Fallback
+        exec_start="$binary_path daemon"
+        stacker_warn "Binary not found at $binary_path - using default daemon command"
+    fi
+    
+    stacker_log "Creating system-level service (requires sudo)..."
+    stacker_log "Service command: $exec_start"
+    
+    # Create service file with resolved variables
     sudo tee "$service_file" >/dev/null << EOF
 [Unit]
 Description=$service_desc
@@ -59,14 +86,15 @@ Wants=network-online.target
 StartLimitIntervalSec=0
 
 [Service]
-Type=\${STACKER_SERVICE_TYPE:-simple}
-\${STACKER_PID_FILE:+PIDFile=$STACKER_PID_FILE}
+Type=$service_type
+${pid_file_line}
 User=$user
 Environment="HOME=$user_home"
 Environment="XDG_CONFIG_HOME=$user_home/.config"
 Environment="XDG_DATA_HOME=$user_home/.local/share"
 Environment="XDG_STATE_HOME=$user_home/.local/state"
-ExecStart=$install_dir/$service_name daemon
+Environment="PATH=$user_home/.local/bin:/usr/local/bin:/usr/bin:/bin"
+ExecStart=$exec_start
 Restart=always
 RestartSec=30
 StandardOutput=journal
@@ -100,29 +128,58 @@ EOF
 # Setup user-level systemd service
 stacker_setup_user_service() {
     local service_name="$STACKER_TECH_NAME"
-    local service_desc="$STACKER_SERVICE_DESCRIPTION"
-    local install_dir="$STACKER_INSTALL_DIR"
+    local service_desc="${STACKER_SERVICE_DESCRIPTION:-$STACKER_TECH_NAME daemon service (User Service)}"
+    local install_dir="${STACKER_INSTALL_DIR:-$HOME/.local/bin}"
     local clone_dir="$STACKER_CLEAN_CLONE_DIR"
     local user_home="$(stacker_get_user_home)"
     local systemd_dir="$user_home/.config/systemd/user"
     local service_file="$systemd_dir/${service_name}.service"
+    
+    # Resolve service configuration with proper defaults
+    local service_type="${STACKER_SERVICE_TYPE:-simple}"
+    local pid_file_line=""
+    if [ -n "$STACKER_PID_FILE" ]; then
+        pid_file_line="PIDFile=$STACKER_PID_FILE"
+    fi
     
     stacker_log "Creating user-level service (no sudo required)..."
     
     # Create user systemd directory
     mkdir -p "$systemd_dir" || return 1
     
-    # Determine ExecStart based on application type
+    # Determine ExecStart based on application type and available binaries
     local exec_start
-    if [ -f "$clone_dir/package.json" ]; then
-        # Node.js application
-        exec_start="$install_dir/$service_name"
+    local binary_path="$install_dir/$service_name"
+    
+    # Check if the binary exists and is executable
+    if [ -x "$binary_path" ]; then
+        # For Node.js applications, check if they have a daemon or start command
+        if [ -f "$clone_dir/package.json" ]; then
+            # Try start command first, fall back to daemon, then main binary
+            if "$binary_path" help 2>/dev/null | grep -q "start"; then
+                exec_start="$binary_path start"
+            elif "$binary_path" help 2>/dev/null | grep -q "daemon"; then
+                exec_start="$binary_path daemon"
+            else
+                exec_start="$binary_path"
+            fi
+        else
+            # Shell script or binary - try start command first, then daemon if available
+            if "$binary_path" help 2>/dev/null | grep -q "start"; then
+                exec_start="$binary_path start"
+            elif "$binary_path" help 2>/dev/null | grep -q "daemon"; then
+                exec_start="$binary_path daemon"
+            else
+                exec_start="$binary_path"
+            fi
+        fi
     else
-        # Shell script or binary
-        exec_start="$install_dir/$service_name daemon"
+        # Fallback to expected path
+        exec_start="$binary_path start"
+        stacker_warn "Binary not found at $binary_path - using default start command"
     fi
     
-    # Create service file
+    # Create service file with resolved variables
     cat > "$service_file" << EOF
 [Unit]
 Description=$service_desc (User Service)
@@ -130,12 +187,13 @@ After=network.target
 StartLimitIntervalSec=0
 
 [Service]
-Type=\${STACKER_SERVICE_TYPE:-simple}
-\${STACKER_PID_FILE:+PIDFile=$STACKER_PID_FILE}
+Type=$service_type
+${pid_file_line}
 Environment="HOME=$user_home"
 Environment="XDG_CONFIG_HOME=$user_home/.config"
 Environment="XDG_DATA_HOME=$user_home/.local/share"
 Environment="XDG_STATE_HOME=$user_home/.local/state"
+Environment="PATH=$user_home/.local/bin:/usr/local/bin:/usr/bin:/bin"
 ExecStart=$exec_start
 Restart=always
 RestartSec=30
@@ -174,7 +232,7 @@ EOF
 stacker_setup_cron_job() {
     local interval="${1:-5}"
     local service_name="$STACKER_TECH_NAME"
-    local install_dir="$STACKER_INSTALL_DIR"
+    local install_dir="${STACKER_INSTALL_DIR:-$HOME/.local/bin}"
     local binary_path="$install_dir/$service_name"
     local cron_comment="# $service_name - managed by Stacker framework"
     local cron_entry
@@ -340,6 +398,7 @@ stacker_disable_service() {
 # Export public interface
 service_list_functions() {
     echo "stacker_setup_systemd_service stacker_setup_system_service stacker_setup_user_service"
+    echo "stacker_setup_nodejs_service stacker_setup_service_with_watchdog"
     echo "stacker_setup_cron_job stacker_remove_cron_job"
     echo "stacker_start_service stacker_stop_service stacker_restart_service stacker_service_status"
     echo "stacker_enable_service stacker_disable_service"
@@ -364,6 +423,105 @@ stacker_setup_service_with_watchdog() {
     else
         stacker_debug "Watchdog module not available - skipping watchdog integration"
     fi
+    
+    return 0
+}
+
+# Setup Node.js application service (specialized for Air and similar projects)
+stacker_setup_nodejs_service() {
+    local service_name="$STACKER_TECH_NAME"
+    local service_desc="$STACKER_SERVICE_DESCRIPTION"
+    local install_dir="$STACKER_INSTALL_DIR"
+    local clone_dir="$STACKER_CLEAN_CLONE_DIR"
+    local user_home="$(stacker_get_user_home)"
+    local systemd_dir="$user_home/.config/systemd/user"
+    local service_file="$systemd_dir/${service_name}.service"
+    local service_type="${STACKER_SERVICE_TYPE:-simple}"
+    local pid_file_line=""
+    
+    if [ -n "$STACKER_PID_FILE" ]; then
+        pid_file_line="PIDFile=$STACKER_PID_FILE"
+    fi
+    
+    stacker_log "Creating Node.js service for $service_name..."
+    
+    # Create user systemd directory
+    mkdir -p "$systemd_dir" || return 1
+    
+    # Verify Node.js application structure
+    if [ ! -f "$clone_dir/package.json" ]; then
+        stacker_error "No package.json found - not a Node.js application"
+        return 1
+    fi
+    
+    # Check for built artifacts
+    local exec_start
+    local working_directory="$clone_dir"
+    
+    if [ -f "$clone_dir/dist/main.js" ]; then
+        # TypeScript project with built artifacts
+        exec_start="node dist/main.js"
+        stacker_debug "Using built TypeScript artifacts: dist/main.js"
+    elif [ -f "$clone_dir/lib/index.js" ]; then
+        # Alternative build directory
+        exec_start="node lib/index.js"
+        stacker_debug "Using built artifacts: lib/index.js"
+    elif [ -f "$clone_dir/index.js" ]; then
+        # Direct JavaScript entry
+        exec_start="node index.js"
+        stacker_debug "Using direct JavaScript entry: index.js"
+    else
+        # Fallback to npm start or main entry from package.json
+        exec_start="npm start"
+        stacker_debug "Using npm start as fallback"
+    fi
+    
+    # Create service file optimized for Node.js applications
+    cat > "$service_file" << EOF
+[Unit]
+Description=$service_desc (Node.js Service)
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=$service_type
+${pid_file_line}
+User=$(whoami)
+Group=$(id -gn)
+WorkingDirectory=$working_directory
+Environment="HOME=$user_home"
+Environment="XDG_CONFIG_HOME=$user_home/.config"
+Environment="XDG_DATA_HOME=$user_home/.local/share"
+Environment="XDG_STATE_HOME=$user_home/.local/state"
+Environment="PATH=$user_home/.local/bin:/usr/local/bin:/usr/bin:/bin"
+Environment="NODE_ENV=production"
+Environment="PATH=$user_home/.local/bin:/usr/local/bin:/usr/bin:/bin"
+ExecStart=$exec_start
+Restart=always
+RestartSec=30
+StandardOutput=journal
+StandardError=journal
+
+# Node.js optimization
+LimitNOFILE=65536
+OOMPolicy=continue
+
+[Install]
+WantedBy=default.target
+EOF
+    
+    # Reload user systemd and enable service
+    systemctl --user daemon-reload || return 1
+    systemctl --user enable "$service_name" || return 1
+    
+    stacker_log "Node.js service created and enabled"
+    stacker_log "  Commands:"
+    stacker_log "    Start:   systemctl --user start $service_name"
+    stacker_log "    Stop:    systemctl --user stop $service_name"
+    stacker_log "    Status:  systemctl --user status $service_name"
+    stacker_log "    Logs:    journalctl --user -u $service_name -f"
+    stacker_log "  Working Directory: $working_directory"
+    stacker_log "  Exec: $exec_start"
     
     return 0
 }
