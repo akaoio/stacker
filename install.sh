@@ -76,19 +76,19 @@ install_stacker() {
     # Create XDG-compliant directory structure
     log "Creating XDG-compliant directory structure..."
     mkdir -p "$BIN_DIR"
-    mkdir -p "$INSTALL_DIR/core"
+    mkdir -p "$INSTALL_DIR/src/sh"
     mkdir -p "$CONFIG_DIR"
     mkdir -p "$INSTALL_DIR/templates"
     
-    # Copy core files
+    # Copy core files - maintain same structure as development
     log "Copying Stacker framework files..."
     cp "$SCRIPT_DIR/stacker.sh" "$STACKER_BIN"
     cp "$SCRIPT_DIR/VERSION" "$INSTALL_DIR/"
-    cp "$SCRIPT_DIR/src/sh/loader.sh" "$INSTALL_DIR/core/"
+    cp "$SCRIPT_DIR/src/sh/loader.sh" "$INSTALL_DIR/src/sh/"
     
-    # Copy modules
+    # Copy modules - maintain same structure as development
     if [ -d "$SCRIPT_DIR/src/sh/module" ]; then
-        cp -r "$SCRIPT_DIR/src/sh/module" "$INSTALL_DIR/core/"
+        cp -r "$SCRIPT_DIR/src/sh/module" "$INSTALL_DIR/src/sh/"
     fi
     
     # Copy templates if they exist
@@ -99,16 +99,9 @@ install_stacker() {
     # Make stacker executable
     chmod +x "$STACKER_BIN"
     
-    # Update stacker.sh to use installed paths
-    sed -i.bak \
-        -e "s|STACKER_DIR=.*|STACKER_DIR=\"$INSTALL_DIR\"|g" \
-        -e "s|src/sh/loader.sh|core/loader.sh|g" \
-        "$STACKER_BIN"
+    # Update stacker.sh to use installed location (no path changes needed!)
+    sed -i.bak "s|STACKER_DIR=.*|STACKER_DIR=\"$INSTALL_DIR\"|g" "$STACKER_BIN"
     rm -f "$STACKER_BIN.bak"
-    
-    # Update loader.sh to use installed module path
-    sed -i.bak "s|src/sh/module|core/module|g" "$INSTALL_DIR/core/loader.sh"
-    rm -f "$INSTALL_DIR/core/loader.sh.bak"
     
     log "Stacker framework installed successfully!"
 }
