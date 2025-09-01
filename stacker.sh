@@ -58,63 +58,98 @@ stacker_parse_cli() {
             ;;
         config|-c)
             shift
-            stacker_smart_call stacker_cli_config "$@"
+            stacker_require "config" || exit 1
+            case "$1" in
+                --help|-h|"")
+                    echo "Usage: stacker config <get|set|list> [KEY] [VALUE]"
+                    echo "Examples: stacker config get key, stacker config set key value"
+                    ;;
+                get) shift; stacker_get_config "$1" ;;
+                set) shift; stacker_save_config "$1" "$2" ;;
+                list) stacker_show_config ;;
+                *) echo "Unknown config action: $1"; exit 1 ;;
+            esac
             ;;
         install)
             shift
-            stacker_smart_call stacker_cli_install "$@"
+            if [ "$1" = "--help" ] || [ "$1" = "-h" ] || [ -z "$1" ]; then
+                echo "Usage: stacker install <package-url> [--user|--system|--local]"
+                echo "Examples: stacker install gh:user/repo, stacker install gh:user/repo --system"
+                exit 0
+            fi
+            stacker_require "package" || exit 1
+            stacker_install_package "$@"
             ;;
         uninstall)
             shift
-            stacker_smart_call stacker_cli_uninstall "$@"
+            if [ "$1" = "--help" ] || [ "$1" = "-h" ] || [ -z "$1" ]; then
+                echo "Usage: stacker uninstall <package-name> [--user|--system|--local]"
+                echo "Examples: stacker uninstall air, stacker uninstall air --system"
+                exit 0
+            fi
+            stacker_require "package" || exit 1
+            stacker_remove_package "$@"
             ;;
         update|-u)
-            shift  
-            stacker_smart_call stacker_cli_update "$@"
-            ;;
-        service)
             shift
-            stacker_smart_call stacker_cli_service "$@"
-            ;;
-        daemon)
-            shift
-            stacker_smart_call stacker_cli_daemon "$@"
-            ;;
-        watchdog)
-            shift
-            stacker_smart_call stacker_cli_watchdog "$@"
-            ;;
-        rollback|-r)
-            shift
-            stacker_smart_call stacker_cli_rollback "$@"
-            ;;
-        add)
-            shift
-            stacker_smart_call stacker_cli_add "$@"
-            ;;
-        remove|rm)
-            shift
-            stacker_smart_call stacker_cli_remove "$@"
+            if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+                echo "Usage: stacker update [stacker|package-name|<empty for all>]"
+                exit 0
+            fi
+            stacker_require "update" || exit 1  
+            stacker_cli_update "$@"
             ;;
         list|ls)
             shift
-            stacker_smart_call stacker_cli_list "$@"
+            if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+                echo "Usage: stacker list [--user|--system|--local|--all]"
+                exit 0
+            fi
+            stacker_require "package" || exit 1
+            if [ "$1" = "--all" ]; then
+                for scope in local user system; do
+                    stacker_list_packages "$scope"
+                done
+            else
+                stacker_list_packages "${1:-user}"
+            fi
             ;;
-        enable)
-            shift
-            stacker_smart_call stacker_cli_enable "$@"
+        service|daemon|watchdog)
+            echo "$1 management not implemented"
+            echo "Use: stacker install <package> for package installation"
+            exit 1
             ;;
-        disable)
+        rollback|-r)
             shift
-            stacker_smart_call stacker_cli_disable "$@"
+            if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+                echo "Usage: stacker rollback [version]"
+                exit 0
+            fi
+            stacker_require "update" || exit 1
+            stacker_cli_rollback "$@"
+            ;;
+        enable|disable)
+            echo "$1 command not implemented"
+            echo "Packages are enabled automatically when installed"
+            exit 1
             ;;
         search)
             shift
-            stacker_smart_call stacker_cli_search "$@"
+            if [ "$1" = "--help" ] || [ "$1" = "-h" ] || [ -z "$1" ]; then
+                echo "Usage: stacker search <query>"
+                exit 0
+            fi
+            stacker_require "package" || exit 1
+            stacker_search_packages "$@"
             ;;
         info)
             shift
-            stacker_smart_call stacker_cli_info "$@"
+            if [ "$1" = "--help" ] || [ "$1" = "-h" ] || [ -z "$1" ]; then
+                echo "Usage: stacker info <package-name> [--user|--system|--local]"
+                exit 0
+            fi
+            stacker_require "package" || exit 1
+            stacker_package_info "$@"
             ;;
         "")
             stacker_require "cli" || exit 1

@@ -113,16 +113,74 @@ stacker_framework_update_check() {
 # Update all packages
 stacker_update_all_packages() {
     echo "🔄 Updating all packages..."
-    # This would iterate through all installed packages
-    echo "✅ All packages updated (not implemented yet)"
+    
+    stacker_require "package" || return 1
+    local updated=0
+    
+    # Update packages in all scopes
+    for scope in user system local; do
+        local pkg_dir="$(stacker_get_package_dirs "$scope")"
+        if [ -d "$pkg_dir" ]; then
+            for pkg_path in "$pkg_dir"/*; do
+                if [ -d "$pkg_path" ] && [ -d "$pkg_path/.git" ]; then
+                    local pkg_name="$(basename "$pkg_path")"
+                    echo "Updating $pkg_name..."
+                    cd "$pkg_path"
+                    if git pull origin main >/dev/null 2>&1 || git pull origin master >/dev/null 2>&1; then
+                        echo "✅ $pkg_name updated"
+                        updated=$((updated + 1))
+                    else
+                        echo "⚠️ Failed to update $pkg_name"
+                    fi
+                fi
+            done
+        fi
+    done
+    
+    if [ $updated -eq 0 ]; then
+        echo "No packages to update"
+    else
+        echo "✅ Updated $updated packages"
+    fi
 }
 
 # Update specific package
 stacker_update_package() {
     local package="$1"
-    echo "🔄 Updating package: $package"
-    # This would update specific package
-    echo "✅ Package $package updated (not implemented yet)"
+    
+    if [ -z "$package" ]; then
+        stacker_error "Package name required"
+        return 1
+    fi
+    
+    stacker_require "package" || return 1
+    
+    # Find the package in all scopes
+    for scope in user system local; do
+        local pkg_dir="$(stacker_get_package_dirs "$scope")"
+        local pkg_path="$pkg_dir/$package"
+        
+        if [ -d "$pkg_path" ]; then
+            echo "🔄 Updating package: $package (in $scope scope)"
+            
+            if [ -d "$pkg_path/.git" ]; then
+                cd "$pkg_path"
+                if git pull origin main >/dev/null 2>&1 || git pull origin master >/dev/null 2>&1; then
+                    echo "✅ Package $package updated successfully"
+                    return 0
+                else
+                    stacker_error "Failed to update $package"
+                    return 1
+                fi
+            else
+                stacker_error "Package $package is not a git repository"
+                return 1
+            fi
+        fi
+    done
+    
+    stacker_error "Package $package not found"
+    return 1
 }
 
 # Check for updates
@@ -328,8 +386,8 @@ stacker_update_git() {
 
 # Manifest-based update
 stacker_update_manifest() {
-    stacker_warn "Manifest-based updates not yet implemented"
-    stacker_log "Use git-based updates for now"
+    stacker_warn "Manifest-based updates not available"
+    stacker_log "Use git-based updates instead"
     return 1
 }
 

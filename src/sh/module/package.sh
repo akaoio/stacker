@@ -484,12 +484,12 @@ stacker_search_packages() {
     fi
     
     echo ""
-    echo "Usage: stacker add <package-url>"
+    echo "Usage: stacker install <package-url>"
     echo ""
-    echo "Meanwhile, you can install packages directly:"
-    echo "  stacker add gh:user/repo"
-    echo "  stacker add gl:user/repo"
-    echo "  stacker add https://example.com/repo.git"
+    echo "You can install packages directly:"
+    echo "  stacker install gh:user/repo"
+    echo "  stacker install gl:user/repo"
+    echo "  stacker install https://example.com/repo.git"
 }
 
 # Module initialization

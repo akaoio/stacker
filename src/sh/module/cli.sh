@@ -158,6 +158,24 @@ stacker_cli_config() {
     local value="$3"
     
     case "$action" in
+        --help|-h|"")
+            cat << 'EOF'
+Usage: stacker config <command> [OPTIONS]
+
+Manage configuration settings
+
+Commands:
+  get KEY               Get configuration value
+  set KEY VALUE         Set configuration value
+  list                  List all configuration
+
+Examples:
+  stacker config get update.interval
+  stacker config set update.interval 3600  
+  stacker config list
+EOF
+            return 0
+            ;;
         get)
             if [ -z "$key" ]; then
                 stacker_error "Key required for get operation"
@@ -170,7 +188,7 @@ stacker_cli_config() {
                 stacker_error "Key and value required for set operation"
                 return 1
             fi
-            stacker_set_config "$key" "$value"
+            stacker_save_config "$key" "$value"
             ;;
         list)
             stacker_show_config
@@ -186,12 +204,36 @@ stacker_cli_config() {
 stacker_cli_install() {
     local target="$1"
     
+    # Handle help first
+    if [ "$target" = "--help" ] || [ "$target" = "-h" ]; then
+        cat << 'EOF'
+Usage: stacker install <package-url> [OPTIONS]
+
+Install packages from GitHub/GitLab/URL
+
+Package URL formats:
+  gh:user/repo[@ref]        GitHub repository
+  gl:user/repo[@ref]        GitLab repository  
+  https://example.git       Direct Git URL
+  file:///local/path        Local directory
+
+Options:
+  --local                   Install in project (.stacker/)
+  --user                    Install for user (~/.local/share/stacker) [default]
+  --system                  Install system-wide (/usr/local/share/stacker)
+  --help, -h                Show this help
+
+Examples:
+  stacker install gh:akaoio/air              # Install from GitHub (user scope)
+  stacker install gh:akaoio/air --system     # Install system-wide
+  stacker install gl:myorg/tool --local      # Install locally to project
+EOF
+        return 0
+    fi
+    
     if [ -z "$target" ]; then
-        echo "Usage: stacker install <package|stacker>"
-        echo "Examples:"
-        echo "  stacker install gh:nginx/nginx"
-        echo "  stacker install gh:redis/redis"
-        echo "  stacker install stacker  # Update framework"
+        echo "Usage: stacker install <package-url> [OPTIONS]"
+        echo "Run 'stacker install --help' for more information"
         return 1
     fi
     
@@ -203,19 +245,37 @@ stacker_cli_install() {
     # Install package using package management
     shift
     stacker_require "package" || return 1
-    stacker_cli_add "$target" "$@"
+    stacker_install_package "$target" "$@"
 }
 
 # Uninstall command - remove packages or framework
 stacker_cli_uninstall() {
     local target="$1"
     
+    # Handle help first
+    if [ "$target" = "--help" ] || [ "$target" = "-h" ]; then
+        cat << 'EOF'
+Usage: stacker uninstall <package-name> [OPTIONS]
+
+Remove installed packages
+
+Options:
+  --local                   Remove from project (.stacker/)
+  --user                    Remove from user (~/.local/share/stacker) [default]
+  --system                  Remove from system (/usr/local/share/stacker)
+  --help, -h                Show this help
+
+Examples:
+  stacker uninstall air                     # Remove from user scope
+  stacker uninstall air --system            # Remove from system
+  stacker uninstall air --local             # Remove from project
+EOF
+        return 0
+    fi
+    
     if [ -z "$target" ]; then
-        echo "Usage: stacker uninstall <package|stacker>"
-        echo "Examples:"
-        echo "  stacker uninstall gh:nginx/nginx"
-        echo "  stacker uninstall gh:redis/redis"
-        echo "  stacker uninstall stacker  # Remove framework"
+        echo "Usage: stacker uninstall <package-name> [OPTIONS]"
+        echo "Run 'stacker uninstall --help' for more information"
         return 1
     fi
     
@@ -241,7 +301,7 @@ stacker_cli_uninstall() {
     # Remove package
     shift
     stacker_require "package" || return 1
-    stacker_cli_remove "$target" "$@"
+    stacker_remove_package "$target" "$@"
 }
 
 # Health command - checks system health
@@ -385,8 +445,6 @@ Commands:
   uninstall             Remove packages or framework
   update                Update packages, framework, or everything
   list, ls              List installed packages
-  add                   Add package from GitHub/GitLab/URL (alias for install)
-  remove, rm            Remove package (alias for uninstall)
   search                Search for packages
   info                  Show package information
   
@@ -481,12 +539,13 @@ EOF
         install)
             echo "Installing $target as service..."
             stacker_require "package" || return 1
-            stacker_cli_add "$target" --service
+            stacker_cli_install "$target" --service
             ;;
         start|stop|restart|status|enable|disable)
             stacker_require "service" || return 1
             echo "Managing $target service: $action"
-            # TODO: Implement per-package service management
+            echo "Service management not yet available - install package first"
+            return 1
             ;;
         *)
             echo "Unknown service command: $action"
@@ -527,15 +586,17 @@ EOF
         install)
             echo "Installing $target as daemon..."
             stacker_require "package" || return 1
-            stacker_cli_add "$target" --daemon
+            stacker_cli_install "$target" --daemon
             ;;
         uninstall)
             echo "Removing $target daemon setup..."
-            # TODO: Implement daemon removal
+            echo "Daemon removal not yet available"
+            return 1
             ;;
         start|stop|restart|status)
             echo "Managing $target daemon: $action"
-            # TODO: Implement daemon control
+            echo "Daemon control not yet available"
+            return 1
             ;;
         *)
             echo "Unknown daemon command: $action"
@@ -574,15 +635,17 @@ EOF
         install)
             echo "Installing $target with watchdog..."
             stacker_require "package" || return 1
-            stacker_cli_add "$target" --watchdog
+            stacker_cli_install "$target" --watchdog
             ;;
         uninstall)
             echo "Removing $target watchdog setup..."
-            # TODO: Implement watchdog removal
+            echo "Watchdog removal not yet available"
+            return 1
             ;;
         start|stop|restart|status)
             echo "Managing $target watchdog: $action"
-            # TODO: Implement watchdog control
+            echo "Watchdog control not yet available"
+            return 1
             ;;
         *)
             echo "Unknown watchdog command: $action"
@@ -592,120 +655,6 @@ EOF
 }
 
 # Package management CLI functions
-stacker_cli_add() {
-    local url="$1"
-    
-    # Parse scope and remaining args  
-    local parse_result=$(stacker_parse_scope_args "$@")
-    local scope=$(echo "$parse_result" | cut -d' ' -f1)
-    set -- $(echo "$parse_result" | cut -d' ' -f2-)
-    
-    while [ $# -gt 0 ]; do
-        case "$1" in
-            --help|-h)
-                cat << 'EOF'
-Usage: stacker add <package-url> [OPTIONS]
-
-Add package from GitHub/GitLab/URL
-
-Package URL formats:
-  gh:user/repo[@ref]        GitHub repository
-  gl:user/repo[@ref]        GitLab repository  
-  https://example.git       Direct Git URL
-  file:///local/path        Local directory
-
-Options:
-  --local                   Install in project (.stacker/)
-  --user                    Install for user (~/.local/share/stacker) [default]
-  --system                  Install system-wide (/usr/local/share/stacker)
-  --help, -h                Show this help
-
-Examples:
-  stacker add gh:akaoio/air              # Add from GitHub (user scope)
-  stacker add gh:akaoio/air --system     # Add system-wide
-  stacker add gl:myorg/tool --local      # Add locally to project
-EOF
-                return 0
-                ;;
-            -*)
-                if [ -n "$url" ]; then
-                    shift
-                    continue
-                fi
-                url="$1"
-                ;;
-            *)
-                if [ -z "$url" ]; then
-                    url="$1"
-                fi
-                ;;
-        esac
-        shift
-    done
-    
-    if [ -z "$url" ]; then
-        stacker_error "Package URL required"
-        stacker_error "Run 'stacker add --help' for usage information"
-        return 1
-    fi
-    
-    stacker_require "package" || return 1
-    stacker_install_package "$url" "$scope"
-}
-
-stacker_cli_remove() {
-    local name="$1"
-    
-    # Parse scope and remaining args
-    local parse_result=$(stacker_parse_scope_args "$@")
-    local scope=$(echo "$parse_result" | cut -d' ' -f1)
-    set -- $(echo "$parse_result" | cut -d' ' -f2-)
-    
-    while [ $# -gt 0 ]; do
-        case "$1" in
-            --help|-h)
-                cat << 'EOF'
-Usage: stacker remove <package-name> [OPTIONS]
-
-Remove installed package
-
-Options:
-  --local                   Remove from project (.stacker/)
-  --user                    Remove from user (~/.local/share/stacker) [default]
-  --system                  Remove from system (/usr/local/share/stacker)
-  --help, -h                Show this help
-
-Examples:
-  stacker remove air                     # Remove from user scope
-  stacker rm air --system                # Remove from system (rm alias)
-EOF
-                return 0
-                ;;
-            -*)
-                if [ -n "$name" ]; then
-                    shift
-                    continue
-                fi
-                name="$1"
-                ;;
-            *)
-                if [ -z "$name" ]; then
-                    name="$1"
-                fi
-                ;;
-        esac
-        shift
-    done
-    
-    if [ -z "$name" ]; then
-        stacker_error "Package name required"
-        stacker_error "Run 'stacker remove --help' for usage information"
-        return 1
-    fi
-    
-    stacker_require "package" || return 1
-    stacker_remove_package "$name" "$scope"
-}
 
 stacker_cli_list() {
     local all_scopes=false

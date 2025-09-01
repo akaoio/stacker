@@ -640,7 +640,7 @@ stacker_standard_args_loop() {
     done
 }
 
-# Show command help (placeholder for future help system)
+# Show command help
 stacker_show_command_help() {
     local command_name="$1"
     echo "Help for $command_name command"
